@@ -68,7 +68,9 @@ export const createSchedulerStore = (props: UseSchedulerProps) => {
 
     setSelectedMonth: (selectedMonth: string) => {
       const label = MONTH_OPTIONS.find(m => m.value === selectedMonth)?.label ?? selectedMonth;
-      set({ selectedMonth, selectedMonthLabel: label });
+      set({ selectedMonth });
+      // setState separado para respetar el tipo parcial
+      set(state => ({ ...state, selectedMonthLabel: label }));
     },
 
     setSelectedService: (selectedService: string) => set({ selectedService }),
@@ -158,7 +160,7 @@ export const createSchedulerStore = (props: UseSchedulerProps) => {
       const { schedule } = get();
       const dayData = schedule.byId[itemId]?.[day];
       if (!dayData) return 0;
-      return (Object.values(dayData) as number[]).reduce((sum, current) => sum + (current || 0), 0);
+  return Object.values(dayData).reduce((sum, current) => sum + (Number(current) || 0), 0);
     },
 
     onExport: () => {
@@ -166,13 +168,17 @@ export const createSchedulerStore = (props: UseSchedulerProps) => {
       const schedule = get().schedule;
       const totals = get().totals;
       const viewMode = get().viewMode;
-      const fileName = `${get().selectedMonthLabel}-${get().selectedService}.csv`;
+      const monthLabel = get().selectedMonthLabel ?? get().selectedMonth;
+      const serviceLabel = get().selectedService;
+      const fileName = `${monthLabel}-${serviceLabel}.csv`;
+      // exportToCsv usa document, en tests headless puede fallar — capturamos y no propagamos
       try {
-        exportToCsv(items, schedule, totals, viewMode, fileName);
+        exportToCsv(items, schedule.byId, totals, viewMode, fileName);
       } catch (err) {
-        // en entornos de test sin DOM esto puede fallar; silenciamos el error
-        // y dejamos que la app real lo ejecute en el navegador
-        // console.warn('Export failed', err);
+        // En entornos de test sin DOM esto puede fallar; registramos para diagnóstico
+        // y no propagamos.
+        // eslint-disable-next-line no-console
+        console.error('Export failed', err);
       }
     },
   }));

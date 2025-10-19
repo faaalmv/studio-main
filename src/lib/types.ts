@@ -74,6 +74,8 @@ export const UseSchedulerPropsSchema = z.object({
 });
 export type UseSchedulerProps = z.infer<typeof UseSchedulerPropsSchema>;
 
+export type Option = { value: string; label: string };
+
 export interface SchedulerState {
   items: NormalizedItems;
   groups: NormalizedGroups;
@@ -85,6 +87,9 @@ export interface SchedulerState {
   days: number[];
   selectedMonth: string;
   selectedService: string;
+  monthOptions?: Option[];
+  serviceOptions?: Option[];
+  selectedMonthLabel?: string;
 }
 
 export interface SchedulerStore extends SchedulerState {
@@ -102,6 +107,12 @@ export interface SchedulerStore extends SchedulerState {
   getAllGroups: () => Group[];
   getItemsByGroup: (groupName: string) => Item[];
   getDailyTotal: (itemId: string, day: number) => number;
+  monthOptions?: Option[];
+  serviceOptions?: Option[];
+  selectedMonthLabel?: string;
+  setSelectedMonth: (selectedMonth: string) => void;
+  setSelectedService: (selectedService: string) => void;
+  onExport: () => void;
 }
 
 
