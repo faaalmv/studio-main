@@ -1,5 +1,5 @@
 
-import { create, StateCreator } from 'zustand';
+import { create } from 'zustand';
 import {
   SchedulerState,
   SchedulerStore,
@@ -21,8 +21,7 @@ export const createSchedulerStore = (props: UseSchedulerProps) => {
   const validatedProps = UseSchedulerPropsSchema.parse(props);
   const initialState = getInitialSchedulerState(validatedProps);
 
-  return create<SchedulerStore>(
-    ((set, get) => ({
+  return create<SchedulerStore>()((set, get) => ({
     ...initialState,
 
     // Actions
@@ -119,7 +118,10 @@ export const createSchedulerStore = (props: UseSchedulerProps) => {
 
     getFilteredItems: () => {
       const { filters } = get();
-      return applyInitialAndFilters(get().getAllItems(), filters);
+      return applyInitialAndFilters(get().getAllItems(), {
+        search: filters.search,
+        group: filters.group
+      });
     },
   }));
 };
