@@ -62,11 +62,17 @@ export function calculateTotals(items: Item[]): Totals {
   return totals;
 }
 
-export function applyInitialAndFilters(items: Item[], filters: Record<string, unknown>): Item[] {
+interface Filters {
+  search?: string;
+  group?: string;
+  [key: string]: string | undefined;
+}
+
+export function applyInitialAndFilters(items: Item[], filters: Filters): Item[] {
   if (!filters || Object.keys(filters).length === 0) return items;
   
-  const searchQuery = String(filters.search || '').toLowerCase();
-  const groupFilter = String(filters.group || '');
+  const searchQuery = (filters.search ?? '').toLowerCase();
+  const groupFilter = filters.group ?? '';
   
   return items.filter(item => {
     const matchesSearch = !searchQuery || 
@@ -79,64 +85,84 @@ export function applyInitialAndFilters(items: Item[], filters: Record<string, un
   });
 }
 
-export function exportToCsv(items: Item[], schedule: Schedule, totals: Totals, viewMode: ViewMode, fileName: string): void {
-  const rows: string[] = [];
-  
-  // Add headers
-  const headers = ['Descripción', 'Código', 'Grupo', 'Total Planificado', 'Total Restante'];
-  const days = Array.from({ length: DAYS_IN_MONTH }, (_, i) => i + 1);
+function getDailyTotal(dayData: Record<Meal, number> | undefined): number {
+  if (!dayData) return 0;
+  return Object.values(dayData).reduce((sum, value) => sum + (Number(value) || 0), 0);
+}
+
+function formatHeaders(days: number[], viewMode: ViewMode): string[] {
+  const baseHeaders = ['Descripción', 'Código', 'Grupo', 'Total Planificado', 'Total Restante'];
+  const dayHeaders: string[] = [];
 
   if (viewMode === 'general') {
     for (const day of days) {
-      headers.push(`Día ${day}`);
+      dayHeaders.push(`Día ${day}`);
     }
   } else {
     for (const day of days) {
       for (const meal of MEALS) {
-        headers.push(`Día ${day} ${meal.charAt(0).toUpperCase() + meal.slice(1)}`);
+        dayHeaders.push(`Día ${day} ${meal.charAt(0).toUpperCase() + meal.slice(1)}`);
       }
     }
   }
-  rows.push(headers.map(header => `"${header}"`).join(','));
 
-  // Add data rows
-  for (const item of items) {
-    const row = [
-      `"${item.description.replaceAll('"', '""')}"`,
-      `"${item.code}"`,
-      `"${item.group}"`,
-      String(totals[item.id].total),
-      String(totals[item.id].remaining)
-    ];
+  return [...baseHeaders, ...dayHeaders];
+}
 
-    for (const day of days) {
-      if (viewMode === 'general') {
-        let dailyTotal = 0;
-        const dayData = schedule[item.id]?.[day];
-        if (dayData) {
-          for (const mealValue of Object.values(dayData)) {
-            dailyTotal += Number(mealValue) || 0;
-          }
-        }
-        row.push(String(dailyTotal));
-      } else {
-        for (const meal of MEALS) {
-          const value = schedule[item.id]?.[day]?.[meal] || 0;
-          row.push(String(value));
-        }
+function formatItemRow(
+  item: Item,
+  schedule: Schedule,
+  totals: Totals,
+  days: number[],
+  viewMode: ViewMode
+): string[] {
+  const baseData = [
+    `"${item.description.replaceAll('"', '""')}"`,
+    `"${item.code}"`,
+    `"${item.group}"`,
+    String(totals[item.id].total),
+    String(totals[item.id].remaining)
+  ];
+
+  const dayData: string[] = [];
+  for (const day of days) {
+    if (viewMode === 'general') {
+      dayData.push(String(getDailyTotal(schedule[item.id]?.[day])));
+    } else {
+      for (const meal of MEALS) {
+        dayData.push(String(schedule[item.id]?.[day]?.[meal] || 0));
       }
     }
-    rows.push(row.join(','));
   }
 
-  const csvContent = 'data:text/csv;charset=utf-8,' + rows.map(row => 
-    row.split(',').map(cell => encodeURIComponent(cell)).join(',')
-  ).join('\r\n');
+  return [...baseData, ...dayData];
+}
 
+export function exportToCsv(
+  items: Item[],
+  schedule: Schedule,
+  totals: Totals,
+  viewMode: ViewMode,
+  fileName: string
+): void {
+  const days = Array.from({ length: DAYS_IN_MONTH }, (_, i) => i + 1);
+  
+  // Generate CSV content
+  const headers = formatHeaders(days, viewMode);
+  const rows = [
+    headers.map(header => `"${header}"`).join(','),
+    ...items.map(item => formatItemRow(item, schedule, totals, days, viewMode).join(','))
+  ];
+
+  const csvContent = 'data:text/csv;charset=utf-8,' + 
+    rows.map(row => row.split(',').map(cell => encodeURIComponent(cell)).join(',')).join('\r\n');
+
+  // Download CSV
   const link = document.createElement("a");
   link.setAttribute("href", csvContent);
   link.setAttribute("download", fileName);
   document.body.appendChild(link);
   link.click();
   link.remove();
+}
 }
