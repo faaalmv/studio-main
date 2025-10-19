@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useCallback } from 'react';
+import { useCallback, useId } from 'react';
 import { Input } from "@/components/ui/input";
 import { ChevronUp, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -27,7 +27,8 @@ interface QuantityStepperProps {
  * @param {QuantityStepperProps} props - The component props.
  * @returns {JSX.Element} The rendered quantity stepper.
  */
-export function QuantityStepper({ value, onValueChange, onCommit, max, 'aria-labelledby': ariaLabelledby }: Readonly<QuantityStepperProps>) {
+  const inputId = useId();
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const valueStr = e.target.value;
 
@@ -76,6 +77,7 @@ export function QuantityStepper({ value, onValueChange, onCommit, max, 'aria-lab
   return (
     <div className="group relative flex items-center justify-center w-full h-full transition-transform duration-150 ease-in-out focus-within:z-10 focus-within:scale-110">
       <Input
+        id={inputId}
         type="number"
         min={0}
         max={max}
@@ -99,7 +101,8 @@ export function QuantityStepper({ value, onValueChange, onCommit, max, 'aria-lab
           type="button"
           onClick={() => handleStep(1)}
           className="h-1/2 w-full text-slate-400 hover:text-slate-800 transition-opacity duration-200 opacity-0 group-hover:opacity-100 focus:opacity-100 flex items-center justify-center"
-          aria-label="Increment value"
+          aria-label="Incrementar valor" // TODO: i18n
+          aria-controls={inputId}
         >
           <ChevronUp className="h-4 w-4" />
         </button>
@@ -108,7 +111,8 @@ export function QuantityStepper({ value, onValueChange, onCommit, max, 'aria-lab
           onClick={() => handleStep(-1)} 
           disabled={!value || value <= 0}
           className="h-1/2 w-full text-slate-400 hover:text-slate-800 transition-opacity duration-200 opacity-0 group-hover:opacity-100 focus:opacity-100 disabled:opacity-0 disabled:cursor-not-allowed flex items-center justify-center"
-          aria-label="Decrement value"
+          aria-label="Disminuir valor" // TODO: i18n
+          aria-controls={inputId}
         >
           <ChevronDown className="h-4 w-4" />
         </button>
