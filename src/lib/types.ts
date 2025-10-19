@@ -95,12 +95,13 @@ export interface SchedulerStore extends SchedulerState {
   updateQuantity: (itemId: string, day: number, mealType: Meal, value: number) => void;
   toggleGroupCollapsed: (groupName: string) => void;
   getFilteredItems: () => Item[];
-  // Nuevos selectores para trabajar con estado normalizado
+  // Selectores memoizados
   getItemById: (id: string) => Item | undefined;
   getGroupById: (id: string) => Group | undefined;
   getAllItems: () => Item[];
   getAllGroups: () => Group[];
   getItemsByGroup: (groupName: string) => Item[];
+  getDailyTotal: (itemId: string, day: number) => number;
 }
 
 
