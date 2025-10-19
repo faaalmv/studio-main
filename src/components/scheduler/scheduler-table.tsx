@@ -191,9 +191,7 @@ export function SchedulerTable() {
     toggleGroupCollapsed,
     collapsedGroups,
     getFilteredItems,
-    updateQuantity,
     getDailyTotal,
-    schedule,
   } = useScheduler();
 
   const [isScrolled, setIsScrolled] = useState(false);
