@@ -32,7 +32,9 @@ const StickyTableCell = React.forwardRef<HTMLTableCellElement, { isScrolled: boo
 ));
 StickyTableCell.displayName = 'StickyTableCell';
 
-const MemoizedTableRow = memo(function MemoizedTableRow({ item, isLast, style, className, isScrolled, hoveredColumn }: { item: any, isLast: boolean, style: React.CSSProperties, className: string, isScrolled: boolean, hoveredColumn: number | null }) {
+type MemoizedRowProps = { item: any; isLast: boolean; style: React.CSSProperties; className: string; isScrolled: boolean; hoveredColumn: number | null } & React.HTMLAttributes<HTMLTableRowElement>;
+
+const MemoizedTableRow = memo(React.forwardRef<HTMLTableRowElement, MemoizedRowProps>(function MemoizedTableRow({ item, isLast, style, className, isScrolled, hoveredColumn, ...rest }, ref) {
     const id = useId();
     const {
         schedule,
@@ -78,8 +80,8 @@ const MemoizedTableRow = memo(function MemoizedTableRow({ item, isLast, style, c
         updateQuantity(item.id, day, 'desayuno', currentBreakfast + diff);
     }, [item.id, schedule, updateQuantity]);
 
-    return (
-        <TableRow className={cn(rowClasses, className, "relative")} style={style}>
+  return (
+    <TableRow ref={ref} className={cn(rowClasses, className, "relative")} style={style} {...rest}>
             <StickyTableCell isScrolled={isScrolled} position="left-0" width="w-32" className="p-2 text-left align-middle">
                 <Badge variant="secondary" className="font-mono text-xs">{item.code}</Badge>
             </StickyTableCell>
@@ -147,7 +149,7 @@ const MemoizedTableRow = memo(function MemoizedTableRow({ item, isLast, style, c
             })}
         </TableRow>
     )
-});
+}));
 
 export function SchedulerTable() {
     const {
@@ -285,6 +287,8 @@ export function SchedulerTable() {
               const { item } = row;
               return (
                 <MemoizedTableRow
+                    ref={node => rowVirtualizer.measureElement(node)}
+                    data-index={virtualItem.index}
                     key={virtualItem.key}
                     item={item}
                     isLast={false}
