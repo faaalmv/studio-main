@@ -1,6 +1,11 @@
 "use client";
-import '../i18n';
+import { useEffect } from 'react';
+import { initI18n } from '@/i18n';
 
-export default function I18nProvider({ children }: { children: React.ReactNode }) {
-  return children;
+export default function I18nProvider({ children }: Readonly<{ children: React.ReactNode }>) {
+  useEffect(() => {
+    initI18n();
+  }, []);
+
+  return <>{children}</>;
 }
