@@ -205,7 +205,8 @@ export function SchedulerTable() {
     const headerTop = `top-0`;
     const mealHeaderTop = `top-[2.5rem]`;
     const groupHeaderTop = viewMode === 'detailed' ? 'top-[5rem]' : 'top-[2.5rem]';
-    
+
+    // Overlay sticky column
     return (
       <div ref={scrollContainerRef} onScroll={handleScroll} className="h-full w-full overflow-auto relative">
         <style>{`
@@ -220,15 +221,48 @@ export function SchedulerTable() {
             to { opacity: 1; transform: translateY(0); }
           }
         `}</style>
-        <Table style={{ height: `${rowVirtualizer.getTotalSize()}px`}} className="min-w-max border-separate border-spacing-0 relative">
+        {/* Sticky column overlay */}
+        <div style={{ position: 'absolute', left: 0, top: 0, width: 130, zIndex: 20, pointerEvents: 'none', height: `${rowVirtualizer.getTotalSize()}px` }}>
+          {rowVirtualizer.getVirtualItems().map((virtualItem) => {
+            const row = allItems[virtualItem.index];
+            const style = {
+              position: 'absolute' as const,
+              top: 0 as const,
+              left: 0 as const,
+              width: '100%',
+              height: `${virtualItem.size}px`,
+              transform: `translateY(${virtualItem.start}px)`,
+              background: 'white',
+              borderBottom: '1px solid #eee',
+              display: 'flex',
+              alignItems: 'center',
+              paddingLeft: 8,
+            };
+            if (row.type === 'group') {
+              return (
+                <div key={virtualItem.key} style={style}>
+                  <span style={{ fontWeight: 'bold', fontSize: 13 }}>{row.group.name}</span>
+                </div>
+              );
+            }
+            const { item } = row;
+            return (
+              <div key={virtualItem.key} style={style}>
+                <span style={{ fontFamily: 'monospace', fontSize: 12 }}>{item.code}</span>
+              </div>
+            );
+          })}
+        </div>
+        {/* Tabla virtualizada sin columna sticky */}
+        <Table style={{ height: `${rowVirtualizer.getTotalSize()}px`, marginLeft: 130 }} className="min-w-max border-separate border-spacing-0 relative">
           <TableHeader className="sticky top-0 z-30 bg-card">
             <TableRow className="hover:bg-transparent">
-              <TableHead className={cn(headerCellStyles, "sticky left-0 w-32 z-40 border-b text-left", isScrolled && "shadow-lg")}>Código</TableHead>
-              <TableHead className={cn(headerCellStyles, "sticky left-32 w-64 z-40 border-b text-left", isScrolled && "shadow-lg")}>Descripción</TableHead>
-              <TableHead className={cn(headerCellStyles, "sticky left-96 w-24 z-40 border-b text-center", isScrolled && "shadow-lg")}>Unidad</TableHead>
-              <TableHead className={cn(headerCellStyles, "sticky left-[30rem] w-24 z-40 border-b", isScrolled && "shadow-lg")}>Total</TableHead>
-              <TableHead className={cn(headerCellStyles, "sticky left-[36rem] w-24 z-40 border-b", isScrolled && "shadow-lg")}>Rest.</TableHead>
-              <TableHead className={cn(headerCellStyles, "sticky left-[42rem] w-24 z-40 border-b", isScrolled && "shadow-lg")}>Estado</TableHead>
+              {/* La columna sticky se omite aquí */}
+              <TableHead className={cn(headerCellStyles, "w-64 z-40 border-b text-left", isScrolled && "shadow-lg")}>Descripción</TableHead>
+              <TableHead className={cn(headerCellStyles, "w-24 z-40 border-b text-center", isScrolled && "shadow-lg")}>Unidad</TableHead>
+              <TableHead className={cn(headerCellStyles, "w-24 z-40 border-b", isScrolled && "shadow-lg")}>Total</TableHead>
+              <TableHead className={cn(headerCellStyles, "w-24 z-40 border-b", isScrolled && "shadow-lg")}>Rest.</TableHead>
+              <TableHead className={cn(headerCellStyles, "w-24 z-40 border-b", isScrolled && "shadow-lg")}>Estado</TableHead>
               {days.map(day => (
                 <TableHead key={day} colSpan={viewMode === 'detailed' ? 3 : 1} className={cn(headerCellStyles, "w-24 border-b border-l transition-colors duration-200", hoveredColumn === day && "bg-primary/5")} onMouseEnter={() => handleColumnHover(day)} onMouseLeave={() => handleColumnHover(null)}>
                   {day}
@@ -237,14 +271,15 @@ export function SchedulerTable() {
             </TableRow>
             {viewMode === 'detailed' && (
               <TableRow className="hover:bg-transparent">
-                <TableHead className={cn(headerCellStyles, "sticky left-0 z-40 border-b", isScrolled && "shadow-lg")} style={{ top: mealHeaderTop }} />
-                <TableHead className={cn(headerCellStyles, "sticky left-32 z-40 border-b", isScrolled && "shadow-lg")} style={{ top: mealHeaderTop }} />
-                <TableHead className={cn(headerCellStyles, "sticky left-96 z-40 border-b", isScrolled && "shadow-lg")} style={{ top: mealHeaderTop }} />
-                <TableHead className={cn(headerCellStyles, "sticky left-[30rem] z-40 border-b", isScrolled && "shadow-lg")} style={{ top: mealHeaderTop }} />
-                <TableHead className={cn(headerCellStyles, "sticky left-[36rem] z-40 border-b", isScrolled && "shadow-lg")} style={{ top: mealHeaderTop }} />
-                <TableHead className={cn(headerCellStyles, "sticky left-[42rem] z-40 border-b", isScrolled && "shadow-lg")} style={{ top: mealHeaderTop }} />
+                {/* La columna sticky se omite aquí */}
+                <TableHead className={cn(headerCellStyles, "z-40 border-b", isScrolled && "shadow-lg")} style={{ top: mealHeaderTop }} />
+                <TableHead className={cn(headerCellStyles, "z-40 border-b", isScrolled && "shadow-lg")} style={{ top: mealHeaderTop }} />
+                <TableHead className={cn(headerCellStyles, "z-40 border-b", isScrolled && "shadow-lg")} style={{ top: mealHeaderTop }} />
+                <TableHead className={cn(headerCellStyles, "z-40 border-b", isScrolled && "shadow-lg")} style={{ top: mealHeaderTop }} />
+                <TableHead className={cn(headerCellStyles, "z-40 border-b", isScrolled && "shadow-lg")} style={{ top: mealHeaderTop }} />
+                <TableHead className={cn(headerCellStyles, "z-40 border-b", isScrolled && "shadow-lg")} style={{ top: mealHeaderTop }} />
                 {days.map(day => (
-                  <React.Fragment key={`meals-${day}`}>
+                  <React.Fragment key={`meals-${day}`}> 
                     {MEALS.map(meal => (
                       <TableHead key={meal} className={cn(headerCellStyles, "text-center text-xs font-medium text-muted-foreground w-12 border-b border-l transition-colors duration-200", hoveredColumn === day && "bg-primary/5")} style={{ top: mealHeaderTop }} onMouseEnter={() => handleColumnHover(day)} onMouseLeave={() => handleColumnHover(null)}>
                         {meal.charAt(0).toUpperCase()}
@@ -268,7 +303,7 @@ export function SchedulerTable() {
 
               if (row.type === 'group') {
                 const { group, groupItems, isExpanded } = row;
-                const colSpan = 6 + (viewMode === 'detailed' ? days.length * 3 : days.length);
+                const colSpan = 5 + (viewMode === 'detailed' ? days.length * 3 : days.length); // 5 columnas sin sticky
                 return (
                   <SchedulerGroupHeader
                     key={virtualItem.key}
