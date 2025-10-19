@@ -55,7 +55,16 @@ export const SchedulerGroupHeader: React.FC<GroupHeaderProps> = ({ group, items,
         progressBarClass,
         hasIncompleteData: itemsWithoutTotal.length > 0
       };
-    } catch (err) {
+    } catch (err: unknown) {
+      // Loguear el error para facilitar debugging sin silenciar excepciones
+      // Usamos unknown y comprobamos antes de leer propiedades
+      try {
+        console.error('Error calculando resumen del grupo', { group: group?.name ?? 'unknown', err });
+      } catch (error_) {
+        // Si console.error falla por alguna razón, queremos evitar romper el flujo
+        // eslint-disable-next-line no-console
+        console.warn('Error calculando resumen del grupo (además fallo al loguear)', error_);
+      }
       return { itemCount: items.length || 0, availablePercent: 100, progressBarClass: 'bg-green-500' };
     }
   }, [items, totals, group.name]);
