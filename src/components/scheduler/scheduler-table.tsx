@@ -13,22 +13,32 @@ import { SchedulerGroupHeader } from './scheduler-group-header';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { GROUP_STYLES, STICKY_CELL_CLASSES, REMAINING_CELL_BG_CLASSES } from '@/lib/styles';
 
-const StickyTableCell = React.forwardRef<HTMLTableCellElement, { isScrolled: boolean, position: string, width: string, children: React.ReactNode, className?: string, isHeader?: boolean, [key: string]: any }>(({ isScrolled, position, width, children, className, isHeader, ...props }, ref) => (
-    <TableCell 
-        ref={ref}
-        className={cn(
-            STICKY_CELL_CLASSES, 
-            position, 
-            width, 
-            isScrolled && "shadow-lg", 
-            isHeader ? "bg-card" : "bg-card/95 backdrop-blur-sm",
-            "shadow-[inset_0_-1px_0_0_hsl(var(--border))]",
-            className
-        )} 
-        {...props}
-    >
-        {children}
-    </TableCell>
+// CSS variable definitions for sticky column widths (keeps layout maintainable)
+const STICKY_COLUMN_STYLES: React.CSSProperties = {
+  // code | description | unit | total | remaining | status
+  '--col-code-width': '8rem',
+  '--col-desc-width': '16rem',
+  '--col-unit-width': '6rem',
+  '--col-total-width': '6rem',
+  '--col-rest-width': '6rem',
+  '--col-status-width': '6rem',
+} as React.CSSProperties;
+
+const StickyTableCell = React.forwardRef<HTMLTableCellElement, { isScrolled?: boolean, children: React.ReactNode, className?: string, isHeader?: boolean, style?: React.CSSProperties, [key: string]: any }>(({ isScrolled, children, className, isHeader, style, ...props }, ref) => (
+  <TableCell 
+    ref={ref}
+    style={style}
+    className={cn(
+      STICKY_CELL_CLASSES,
+      isScrolled && "shadow-lg",
+      isHeader ? "bg-card" : "bg-card/95 backdrop-blur-sm",
+      "shadow-[inset_0_-1px_0_0_hsl(var(--border))]",
+      className
+    )}
+    {...props}
+  >
+    {children}
+  </TableCell>
 ));
 StickyTableCell.displayName = 'StickyTableCell';
 
