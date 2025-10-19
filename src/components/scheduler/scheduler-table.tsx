@@ -328,7 +328,7 @@ export function SchedulerTable() {
                     item={item}
                     isLast={false}
                     style={{...commonStyle, animationDelay: `${virtualItem.index * 30}ms` }}
-                    className=""
+                    className="flex"
                     isScrolled={isScrolled}
                     hoveredColumn={hoveredColumn}
                 />
