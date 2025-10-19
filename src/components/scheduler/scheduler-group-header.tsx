@@ -24,22 +24,19 @@ interface GroupHeaderProps {
 export const SchedulerGroupHeader: React.FC<GroupHeaderProps> = ({ group, items, totals, isExpanded, onToggle, colSpan, stickyTopClass, style }) => {
   const { t } = useTranslation();
 
-  // Para evitar romper el orden de hooks, no retornamos temprano. Si no hay group, renderizamos un TableRow vacío.
-  if (!group) {
-    return (
-      <TableRow style={style} className={cn("group hover:z-20", stickyTopClass)}>
-        <TableCell colSpan={colSpan} className={cn("p-0 border-b")}></TableCell>
-      </TableRow>
-    );
-  }
+  // Para evitar romper el orden de hooks, no retornamos temprano. Si no hay group, renderizamos un TableRow vacío al final.
 
   /**
    * Calcula el resumen del grupo incluyendo el conteo de items y el porcentaje de disponibilidad.
+   * Si group es nulo, retorna valores por defecto.
    */
   const summary = useMemo(() => {
+    if (!group) {
+      return { itemCount: 0, availablePercent: 100, progressBarClass: 'bg-green-500', hasIncompleteData: false };
+    }
     try {
       if (!items || items.length === 0) {
-        return { itemCount: 0, availablePercent: 100, progressBarClass: 'bg-green-500' };
+        return { itemCount: 0, availablePercent: 100, progressBarClass: 'bg-green-500', hasIncompleteData: false };
       }
       const itemsWithoutTotal = items.filter(item => item.totalPossible === undefined || item.totalPossible === null);
       const totalMax = items.reduce((acc, item) => acc + (item.totalPossible ?? 0), 0);
@@ -67,17 +64,15 @@ export const SchedulerGroupHeader: React.FC<GroupHeaderProps> = ({ group, items,
       };
     } catch (err: unknown) {
       // Loguear el error para facilitar debugging sin silenciar excepciones
-      // Usamos unknown y comprobamos antes de leer propiedades
       try {
         console.error('Error calculando resumen del grupo', { group: group?.name ?? 'unknown', err });
       } catch (error_) {
-        // Si console.error falla por alguna razón, queremos evitar romper el flujo
         // eslint-disable-next-line no-console
         console.warn('Error calculando resumen del grupo (además fallo al loguear)', error_);
       }
-      return { itemCount: items.length || 0, availablePercent: 100, progressBarClass: 'bg-green-500' };
+      return { itemCount: items.length || 0, availablePercent: 100, progressBarClass: 'bg-green-500', hasIncompleteData: false };
     }
-  }, [items, totals, group?.name]);
+  }, [items, totals, group]);
 
   // Cálculos derivados que manejan nulos de manera segura
   const config = group ? (GROUP_CONFIG[group.name] || GROUP_CONFIG.Default) : GROUP_CONFIG.Default;
@@ -86,6 +81,14 @@ export const SchedulerGroupHeader: React.FC<GroupHeaderProps> = ({ group, items,
   const groupBorder = cn(groupBorderClass);
 
   // handleKeyDown eliminado: ahora usamos un <button> nativo para accesibilidad
+
+  if (!group) {
+    return (
+      <TableRow style={style} className={cn("group hover:z-20", stickyTopClass)}>
+        <TableCell colSpan={colSpan} className={cn("p-0 border-b")}></TableCell>
+      </TableRow>
+    );
+  }
 
   return (
     <TableRow style={style} className={cn("group hover:z-20", stickyTopClass)}>
