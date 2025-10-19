@@ -1,13 +1,14 @@
 
 "use client";
 
-import { useId } from 'react';
+import { useId, useCallback } from 'react';
 import { useScheduler } from "@/lib/hooks/use-scheduler";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileDown, Search } from "lucide-react";
+import { useDebouncedCallback } from '@/lib/hooks/use-debounce';
 
 export function SchedulerHeader() {
   const id = useId();
@@ -22,17 +23,21 @@ export function SchedulerHeader() {
     selectedMonthLabel,
   } = useScheduler();
 
-  const handleFilterChange = (value: string) => {
-    setFilters({ ...filters, search: value });
-  };
+  const debouncedSetFilter = useDebouncedCallback((value: string) => {
+    setFilters((prev: any) => ({ ...prev, search: value }));
+  }, 300);
 
-  const handleMonthChange = (value: string) => {
-    setFilters({ ...filters, month: value });
-  };
+  const handleFilterChange = useCallback((value: string) => {
+    debouncedSetFilter(value);
+  }, [debouncedSetFilter]);
 
-  const handleServiceChange = (value: string) => {
-    setFilters({ ...filters, service: value });
-  };
+  const handleMonthChange = useCallback((value: string) => {
+    setFilters((prev: any) => ({ ...prev, month: value }));
+  }, [setFilters]);
+
+  const handleServiceChange = useCallback((value: string) => {
+    setFilters((prev: any) => ({ ...prev, service: value }));
+  }, [setFilters]);
 
   return (
     <div className="flex flex-col gap-6">
