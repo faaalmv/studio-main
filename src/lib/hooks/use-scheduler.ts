@@ -19,5 +19,13 @@ export const useScheduler = () => {
     localRef.current = createSchedulerStore({ items: initialItems, groups: initialGroups });
   }
 
-  return localRef.current();
+  // Devolvemos el store, pero añadimos algunas propiedades derivadas para
+  // mantener compatibilidad con tests/componentes que esperan otras formas.
+  const s = localRef.current();
+  return {
+    ...s,
+    items: s.getAllItems(),
+    filter: s.filters?.search ?? '',
+    setFilter: (value: string) => s.setFilters({ ...(s.filters ?? {}), search: value }),
+  };
 };
