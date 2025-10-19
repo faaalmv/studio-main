@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { ChevronDown } from "lucide-react";
 import type { Group, Item, Totals } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { GROUP_CONFIG } from '@/lib/constants';
 
 interface GroupHeaderProps {
   group: Group;
@@ -31,72 +32,53 @@ export const SchedulerGroupHeader: React.FC<GroupHeaderProps> = ({ group, items,
    * @returns {Object} Un objeto con el conteo de items, porcentaje disponible y clase CSS para la barra de progreso
    */
   const summary = useMemo(() => {
-    if (!items || items.length === 0) {
-      return { itemCount: 0, availablePercent: 100, progressBarClass: 'bg-green-500' };
-    }
+    try {
+      if (!items || items.length === 0) {
+        return { itemCount: 0, availablePercent: 100, progressBarClass: 'bg-green-500' };
+      }
 
-    // Primero verificamos si hay algún item sin totalPossible definido
-    const itemsWithoutTotal = items.filter(item => item.totalPossible === undefined || item.totalPossible === null);
-    if (itemsWithoutTotal.length > 0) {
-      console.warn(`Advertencia: ${itemsWithoutTotal.length} items en el grupo "${group.name}" no tienen totalPossible definido:`, 
-        itemsWithoutTotal.map(item => item.code));
-    }
+      // Primero verificamos si hay algún item sin totalPossible definido
+      const itemsWithoutTotal = items.filter(item => item.totalPossible === undefined || item.totalPossible === null);
+      if (itemsWithoutTotal.length > 0) {
+        console.warn(`Advertencia: ${itemsWithoutTotal.length} items en el grupo "${group.name}" no tienen totalPossible definido:`, 
+          itemsWithoutTotal.map(item => item.code));
+      }
 
-    const totalMax = items.reduce((acc, item) => acc + (item.totalPossible ?? 0), 0);
-    const totalScheduled = items.reduce((acc, item) => acc + (totals[item.id]?.total ?? 0), 0);
+      const totalMax = items.reduce((acc, item) => acc + (item.totalPossible ?? 0), 0);
+      const totalScheduled = items.reduce((acc, item) => acc + (totals[item.id]?.total ?? 0), 0);
 
-    if (totalMax === 0) {
+      if (totalMax === 0) {
+        return { 
+          itemCount: items.length, 
+          availablePercent: 100, 
+          progressBarClass: 'bg-green-500',
+          hasIncompleteData: itemsWithoutTotal.length > 0
+        };
+      }
+
+      const scheduledPercent = (totalScheduled / totalMax) * 100;
+      const availablePercent = 100 - scheduledPercent;
+
+      let progressBarClass = 'bg-rose-500'; // 0% available
+      if (availablePercent > 75) progressBarClass = 'bg-green-500'; // 75-100%
+      else if (availablePercent > 50) progressBarClass = 'bg-sky-500'; // 50-75%
+      else if (availablePercent > 25) progressBarClass = 'bg-amber-400'; // 25-50%
+      else if (availablePercent > 0) progressBarClass = 'bg-orange-500'; // 0-25%
+
       return { 
         itemCount: items.length, 
-        availablePercent: 100, 
-        progressBarClass: 'bg-green-500',
-        hasIncompleteData: itemsWithoutTotal.length > 0
+        availablePercent: Math.max(0, availablePercent), 
+        progressBarClass 
       };
+    } catch (err) {
+      console.error('Error calculando resumen del grupo', err);
+      return { itemCount: items.length || 0, availablePercent: 100, progressBarClass: 'bg-green-500' };
     }
+  }, [items, totals, group.name]);
 
-    const scheduledPercent = (totalScheduled / totalMax) * 100;
-    const availablePercent = 100 - scheduledPercent;
-
-    let progressBarClass = 'bg-rose-500'; // 0% available
-    if (availablePercent > 75) progressBarClass = 'bg-green-500'; // 75-100%
-    else if (availablePercent > 50) progressBarClass = 'bg-sky-500'; // 50-75%
-    else if (availablePercent > 25) progressBarClass = 'bg-amber-400'; // 25-50%
-    else if (availablePercent > 0) progressBarClass = 'bg-orange-500'; // 0-25%
-
-    return { 
-      itemCount: items.length, 
-      availablePercent: Math.max(0, availablePercent), 
-      progressBarClass 
-    };
-  }, [items, totals]);
-
-  const groupBg = cn({
-    'bg-chart-1/10': group.name === 'Abarrotes',
-    'bg-chart-2/10': group.name === 'Carnes',
-    'bg-chart-3/10': group.name === 'Embutidos',
-    'bg-chart-4/10': group.name === 'Frutas',
-    'bg-chart-5/10': group.name === 'Lacteos',
-    'bg-cyan-500/10': group.name === 'Aves y Huevo',
-    'bg-indigo-500/10': group.name === 'Pescados y Mariscos',
-    'bg-amber-500/10': group.name === 'Panaderia y Tortilleria',
-    'bg-lime-500/10': group.name === 'Semillas y Cereales',
-    'bg-emerald-500/10': group.name === 'Verduras y Hortalizas',
-    'bg-sky-500/10': group.name === 'Congelados',
-  });
-  
-  const groupBorder = cn({
-    'border-chart-1': group.name === 'Abarrotes',
-    'border-chart-2': group.name === 'Carnes',
-    'border-chart-3': group.name === 'Embutidos',
-    'border-chart-4': group.name === 'Frutas',
-    'border-chart-5': group.name === 'Lacteos',
-    'border-cyan-500': group.name === 'Aves y Huevo',
-    'border-indigo-500': group.name === 'Pescados y Mariscos',
-    'border-amber-500': group.name === 'Panaderia y Tortilleria',
-    'border-lime-500': group.name === 'Semillas y Cereales',
-    'border-emerald-500': group.name === 'Verduras y Hortalizas',
-    'border-sky-500': group.name === 'Congelados',
-  });
+  const { bg: groupBgClass, border: groupBorderClass } = GROUP_CONFIG[group.name] || GROUP_CONFIG.Default;
+  const groupBg = cn(groupBgClass);
+  const groupBorder = cn(groupBorderClass);
 
   return (
     <TableRow
