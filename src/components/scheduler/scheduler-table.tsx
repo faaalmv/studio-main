@@ -201,6 +201,7 @@ export function SchedulerTable() {
 
   const [isScrolled, setIsScrolled] = useState(false);
   const [hoveredColumn, setHoveredColumn] = useState<number | null>(null);
+  const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
   const parentRef = useRef<HTMLDivElement>(null);
 
   const handleScroll = useCallback(() => {
@@ -294,7 +295,13 @@ export function SchedulerTable() {
         `}</style>
         {/* NOTE: Removed overlay sticky column. First column is now a native sticky cell inside each row. */}
         {/* Tabla virtualizada sin columna sticky */}
-        <Table style={{ height: `${rowVirtualizer.getTotalSize()}px` }} className="min-w-max border-separate border-spacing-0 relative">
+        <Table
+          role="grid"
+          aria-label="Programación de alimentos"
+          aria-rowcount={allItems.length}
+          style={{ height: `${rowVirtualizer.getTotalSize()}px` }}
+          className="min-w-max border-separate border-spacing-0 relative"
+        >
           <TableHeader className="sticky top-0 z-30 bg-card">
             <TableRow className="hover:bg-transparent">
               {/* Primera columna sticky (Código) */}
@@ -365,11 +372,20 @@ export function SchedulerTable() {
               const { item } = row;
               return (
         <MemoizedTableRow
-          ref={node => rowVirtualizer.measureElement(node)}
+          ref={node => {
+            rowVirtualizer.measureElement(node);
+            if (node && focusedIndex === virtualItem.index) {
+              const el = node as HTMLElement | null;
+              if (el && typeof el.focus === 'function') el.focus();
+            }
+          }}
           data-index={virtualItem.index}
           key={virtualItem.key}
           item={item}
           style={{...commonStyle, animationDelay: `${virtualItem.index * 30}ms` }}
+          aria-rowindex={virtualItem.index + 1}
+          onFocus={() => setFocusedIndex(virtualItem.index)}
+          tabIndex={-1}
           {...{ className: 'flex', isScrolled, hoveredColumn }}
           makeOnDetailedValueChange={makeOnDetailedValueChange}
           makeOnGeneralValueChange={makeOnGeneralValueChange}
