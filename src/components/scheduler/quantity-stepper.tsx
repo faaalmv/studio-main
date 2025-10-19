@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useCallback, useId } from 'react';
+import React, { useCallback, useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Input } from "@/components/ui/input";
 import { ChevronUp, ChevronDown } from 'lucide-react';
@@ -33,35 +33,50 @@ interface QuantityStepperProps {
 export function QuantityStepper({ value, onValueChange, onCommit, max, 'aria-labelledby': ariaLabelledby }: Readonly<QuantityStepperProps>) {
   const { t } = useTranslation();
   const inputId = useId();
+  const [inputValue, setInputValue] = React.useState(String(value));
+  const [isInvalid, setIsInvalid] = React.useState(false);
+
+  React.useEffect(() => {
+    setInputValue(String(value));
+    setIsInvalid(false);
+  }, [value]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const valueStr = e.target.value;
-
-    if (valueStr === '') {
-      // UX: tratar campo vacío como 0 y mantener el input controlado
-      onValueChange(0);
+    const val = e.target.value;
+    // allow empty string for editing
+    if (val === '') {
+      setInputValue('');
+      setIsInvalid(false);
       return;
     }
+    // sanitize to digits only
+  const sanitized = val.replaceAll(/\D/g, '');
+    setInputValue(sanitized);
+    const num = Number.parseInt(sanitized, 10);
+    const isError = Number.isNaN(num) || num < 0 || num > max;
+    setIsInvalid(isError);
+  };
 
-    // Eliminar caracteres no numéricos y parsear
-    const sanitized = valueStr.replaceAll(/[^0-9-]/g, '');
-    const numericValue = Number.parseInt(sanitized, 10);
-
-    if (Number.isNaN(numericValue)) {
-      // No hacer nada si no es numérico
+  const commitValue = () => {
+    if (isInvalid) {
+      setInputValue(String(value));
+      setIsInvalid(false);
       return;
     }
-
-    // Prevenir negativos
-    const clamped = Math.max(0, Math.min(numericValue, max));
-    onValueChange(clamped);
+  const finalValue = inputValue === '' ? 0 : Number.parseInt(inputValue, 10);
+    if (Number.isNaN(finalValue)) {
+      setInputValue(String(value));
+      return;
+    }
+    if (finalValue !== value) onValueChange(finalValue);
+    onCommit?.();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      onCommit?.();
-      e.currentTarget.blur();
+      commitValue();
+      (e.currentTarget as HTMLInputElement).blur();
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       handleStep(1);
@@ -83,21 +98,18 @@ export function QuantityStepper({ value, onValueChange, onCommit, max, 'aria-lab
     <div className="group relative flex items-center justify-center w-full h-full transition-transform duration-150 ease-in-out focus-within:z-10 focus-within:scale-110">
       <Input
         id={inputId}
-        type="number"
-        min={0}
-        max={max}
+        type="text"
         aria-labelledby={ariaLabelledby}
-        // Mostrar siempre el valor del estado (incluir 0)
-        value={String(value)}
+        value={inputValue}
         onChange={handleInputChange}
-        onBlur={onCommit}
+        onBlur={commitValue}
         onKeyDown={handleKeyDown}
         className={cn(
           "h-full w-full rounded-none border-0 p-2 pr-5 text-center text-sm shadow-none transition-all duration-150 [appearance:textfield] focus:bg-primary/10 focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0",
           "placeholder:text-muted-foreground/50",
           "disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed",
           "[&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
-          { "font-semibold text-primary": value > 0 },
+          { "font-semibold text-primary": Number(inputValue) > 0, 'border-destructive ring-destructive animate-pulse': isInvalid },
         )}
         placeholder="0"
       />
