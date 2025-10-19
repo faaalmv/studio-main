@@ -1,4 +1,6 @@
 
+"use client";
+
 import { SchedulerClient } from "@/components/scheduler/scheduler-client";
 import { initialItems, initialGroups } from "@/lib/data";
 
