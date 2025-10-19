@@ -74,8 +74,39 @@ const MemoizedTableRow = memo(React.forwardRef<HTMLTableRowElement, any>(functio
 
   const onGeneralValueChange = useCallback((day: number, dailyTotal: number) => (newValue: number) => {
     const diff = newValue - dailyTotal;
-    const currentBreakfast = schedule[item.id]?.[day]?.desayuno ?? 0;
-    updateQuantity(item.id, day, 'desayuno', currentBreakfast + diff);
+    if (diff === 0) return;
+
+    const currentMeals = schedule[item.id]?.[day] || {};
+    // Aseguramos el mismo orden de comidas que se usa en el proyecto
+  const MEALS_ORDER: string[] = ['desayuno', 'comida', 'cena'];
+
+  const mealsWithValues = MEALS_ORDER.filter((meal) => (currentMeals[meal] ?? 0) > 0);
+
+    // Si la diferencia es positiva y ninguna comida tiene valor, añadir a la primera (ej. desayuno)
+    if (diff > 0 && mealsWithValues.length === 0) {
+      const current = currentMeals['desayuno'] ?? 0;
+      updateQuantity(item.id, day, 'desayuno', current + diff);
+      return;
+    }
+
+    // Si hay comidas con valor, actualizar la primera que se encuentre
+    if (mealsWithValues.length > 0) {
+  const firstMealToUpdate = mealsWithValues[0];
+  const currentMealValue = currentMeals[firstMealToUpdate] ?? 0;
+      const newVal = Math.max(0, currentMealValue + diff);
+      updateQuantity(item.id, day, firstMealToUpdate, newVal);
+      return;
+    }
+
+    // Caso por defecto (diff negativo o no cubierto): si diff < 0, restar de la última comida con valor
+    if (diff < 0) {
+      const mealsNonZero = MEALS_ORDER.filter((meal) => (currentMeals[meal] ?? 0) > 0);
+      if (mealsNonZero.length > 0) {
+        const target = mealsNonZero.at(-1);
+        const currentTargetVal = target ? (currentMeals[target] ?? 0) : 0;
+        if (target) updateQuantity(item.id, day, target, Math.max(0, currentTargetVal + diff));
+      }
+    }
   }, [item.id, schedule, updateQuantity]);
 
   return (
