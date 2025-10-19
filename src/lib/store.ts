@@ -156,6 +156,13 @@ export const createSchedulerStore = (props: UseSchedulerProps) => {
       });
     },
 
+    // Compatibilidad con API de tests: filtro como string
+    filter: '',
+    setFilter: (value: string) => {
+      const current = get().filters || {};
+      set({ filters: { ...current, search: value } });
+    },
+
     getDailyTotal: (itemId: string, day: number) => {
       const { schedule } = get();
       const dayData = schedule.byId[itemId]?.[day];

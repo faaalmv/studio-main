@@ -90,6 +90,7 @@ export interface SchedulerState {
   monthOptions?: Option[];
   serviceOptions?: Option[];
   selectedMonthLabel?: string;
+  filter?: string;
 }
 
 export interface SchedulerStore extends SchedulerState {
@@ -113,6 +114,8 @@ export interface SchedulerStore extends SchedulerState {
   setSelectedMonth: (selectedMonth: string) => void;
   setSelectedService: (selectedService: string) => void;
   onExport: () => void;
+  filter?: string;
+  setFilter: (value: string) => void;
 }
 
 

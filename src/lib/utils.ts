@@ -13,18 +13,35 @@ export function getInitialSchedulerState(props: UseSchedulerProps): SchedulerSta
   const days = Array.from({ length: DAYS_IN_MONTH }, (_, i) => i + 1);
   
   // Initialize empty schedule for all items
-  const schedule: Schedule = {};
+  const scheduleById: Record<string, Record<number, { desayuno: number; almuerzo: number; cena: number }>> = {};
+  const itemIds: string[] = [];
   for (const item of items) {
-    schedule[item.id] = {};
+    itemIds.push(item.id);
+    scheduleById[item.id] = {};
     for (const day of days) {
-      schedule[item.id][day] = { desayuno: 0, almuerzo: 0, cena: 0 };
+      scheduleById[item.id][day] = { desayuno: 0, almuerzo: 0, cena: 0 };
     }
   }
 
+  const normalizedItems = {
+    byId: items.reduce((acc, item) => ({ ...acc, [item.id]: item }), {} as Record<string, Item>),
+    allIds: items.map(item => item.id),
+  };
+
+  const normalizedGroups = {
+    byId: groups.reduce((acc, g) => ({ ...acc, [g.name]: g }), {} as Record<string, { name: string }>),
+    allIds: groups.map(g => g.name),
+  };
+
+  const normalizedSchedule = {
+    byId: scheduleById,
+    allIds: itemIds,
+  };
+
   return {
-    items,
-    groups,
-    schedule,
+    items: normalizedItems,
+    groups: normalizedGroups,
+    schedule: normalizedSchedule,
     totals: calculateTotals(items),
     viewMode: 'general',
     filters: {},
