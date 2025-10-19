@@ -64,26 +64,20 @@ export const SchedulerGroupHeader: React.FC<GroupHeaderProps> = ({ group, items,
   const groupBg = cn(groupBgClass);
   const groupBorder = cn(groupBorderClass);
 
-  // Accesibilidad: TableRow como botón
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTableRowElement>) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      onToggle();
-    }
-  };
+  // handleKeyDown eliminado: ahora usamos un <button> nativo para accesibilidad
 
   return (
-    <TableRow
-      style={style}
-      className={cn("cursor-pointer group hover:z-20", stickyTopClass)}
-      onClick={onToggle}
-      role="button"
-      tabIndex={0}
-      onKeyDown={handleKeyDown}
-      aria-expanded={isExpanded}
-    >
+    <TableRow style={style} className={cn("group hover:z-20", stickyTopClass)}>
       <TableCell colSpan={colSpan} className={cn("p-0 border-b", groupBg, groupBorder)}>
-        <div className="flex items-center justify-between w-full px-4 py-2">
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-expanded={isExpanded}
+          className={cn(
+            "w-full text-left flex items-center justify-between px-4 py-2",
+            "cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60",
+          )}
+        >
           <div className="flex items-center gap-4">
             <ChevronDown
               className={cn('h-5 w-5 text-current opacity-80 transform transition-transform duration-300 ease-out', {
@@ -97,16 +91,16 @@ export const SchedulerGroupHeader: React.FC<GroupHeaderProps> = ({ group, items,
             </div>
           </div>
           <div className="flex items-center gap-4 w-1/3 max-w-xs">
-            <div 
+            <div
               className="flex-1"
-              title={summary.hasIncompleteData 
+              title={summary.hasIncompleteData
                 ? t('advertencia_incompleto', { percent: Math.round(summary.availablePercent) })
                 : t('disponibilidad', { percent: Math.round(summary.availablePercent) })}
             >
-              <Progress 
-                value={summary.availablePercent} 
-                className={cn("h-2", summary.hasIncompleteData && "opacity-75")} 
-                indicatorClassName={summary.progressBarClass} 
+              <Progress
+                value={summary.availablePercent}
+                className={cn("h-2", summary.hasIncompleteData && "opacity-75")}
+                indicatorClassName={summary.progressBarClass}
               />
             </div>
             <div className="flex items-center gap-1">
@@ -114,16 +108,13 @@ export const SchedulerGroupHeader: React.FC<GroupHeaderProps> = ({ group, items,
                 {Math.round(summary.availablePercent)}%
               </span>
               {summary.hasIncompleteData && (
-                <span 
-                  className="text-amber-500 text-sm" 
-                  title={t('algunos_sin_limite')}
-                >
+                <span className="text-amber-500 text-sm" title={t('algunos_sin_limite')}>
                   *
                 </span>
               )}
             </div>
           </div>
-        </div>
+        </button>
       </TableCell>
     </TableRow>
   );
