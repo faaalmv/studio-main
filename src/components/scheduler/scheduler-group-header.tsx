@@ -99,7 +99,7 @@ export const SchedulerGroupHeader: React.FC<GroupHeaderProps> = ({ group, items,
 
   return (
     <TableRow
-      className={cn("cursor-pointer group hover:z-20 sticky", stickyTopClass)}
+      className={cn("cursor-pointer group hover:z-20", stickyTopClass)}
       onClick={onToggle}
       aria-expanded={isExpanded}
     >
