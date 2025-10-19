@@ -9,6 +9,7 @@ import {
   Filters,
   FilterSchema,
   UseSchedulerPropsSchema,
+  Schedule,
 } from '@/lib/types';
 import {
   getInitialSchedulerState,
