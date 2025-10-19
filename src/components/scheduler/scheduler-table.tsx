@@ -2,6 +2,7 @@
 "use client";
 
 import React, { memo, useState, useRef, useCallback, useMemo, useId } from 'react';
+import type { VirtualItem } from '@tanstack/react-virtual';
 import { useScheduler } from "@/lib/hooks/use-scheduler";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -24,7 +25,7 @@ const STICKY_COLUMN_STYLES: React.CSSProperties = {
   '--col-status-width': '6rem',
 } as React.CSSProperties;
 
-const StickyTableCell = React.forwardRef<HTMLTableCellElement, { isScrolled?: boolean, children: React.ReactNode, className?: string, isHeader?: boolean, style?: React.CSSProperties, [key: string]: any }>(({ isScrolled, children, className, isHeader, style, ...props }, ref) => (
+const StickyTableCell = React.forwardRef<HTMLTableCellElement, { isScrolled?: boolean, children: React.ReactNode, className?: string, isHeader?: boolean, style?: React.CSSProperties, [key: string]: unknown }>(({ isScrolled, children, className, isHeader, style, ...props }, ref) => (
   <TableCell 
     ref={ref}
     style={style}
@@ -42,7 +43,16 @@ const StickyTableCell = React.forwardRef<HTMLTableCellElement, { isScrolled?: bo
 ));
 StickyTableCell.displayName = 'StickyTableCell';
 
-const MemoizedTableRow = memo(React.forwardRef<HTMLTableRowElement, any>(function MemoizedTableRow({ item, style, className, isScrolled, hoveredColumn, getDailyTotal, ...rest }, ref) {
+interface MemoizedTableRowProps extends React.HTMLAttributes<HTMLTableRowElement> {
+  item: any; // Item type comes from lib/types but keeping any to avoid long imports here
+  style?: React.CSSProperties;
+  className?: string;
+  isScrolled?: boolean;
+  hoveredColumn?: number | null;
+  getDailyTotal?: (itemId: string, day: number) => number;
+}
+
+const MemoizedTableRow = memo(React.forwardRef<HTMLTableRowElement, MemoizedTableRowProps>(function MemoizedTableRow({ item, style, className, isScrolled, hoveredColumn, getDailyTotal, ...rest }, ref) {
     const id = useId();
     const {
         schedule,
