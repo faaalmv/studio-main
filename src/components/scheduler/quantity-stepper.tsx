@@ -21,6 +21,8 @@ interface QuantityStepperProps {
   onCommit?: () => void;
   max: number;
   'aria-labelledby': string;
+  isError?: boolean;
+  onClearError?: () => void;
 }
 
 /**
