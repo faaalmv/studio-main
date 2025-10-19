@@ -1,11 +1,10 @@
 
-import { create } from 'zustand';
+import { create, StateCreator } from 'zustand';
 import {
   SchedulerState,
   SchedulerStore,
   UseSchedulerProps,
   Item,
-  Group,
   ViewMode,
   Meal,
   Filters,
@@ -22,7 +21,8 @@ export const createSchedulerStore = (props: UseSchedulerProps) => {
   const validatedProps = UseSchedulerPropsSchema.parse(props);
   const initialState = getInitialSchedulerState(validatedProps);
 
-  return create<SchedulerStore>((set, get) => ({
+  return create<SchedulerStore>(
+    ((set, get) => ({
     ...initialState,
 
     // Actions
