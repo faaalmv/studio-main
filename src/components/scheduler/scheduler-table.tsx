@@ -93,13 +93,16 @@ const MemoizedTableRow = memo(React.forwardRef<HTMLTableRowElement, MemoizedRowP
             <StickyTableCell isScrolled={isScrolled} position="left-96" width="w-24">{item.unit}</StickyTableCell>
             <StickyTableCell isScrolled={isScrolled} position="left-[30rem]" width="w-24" className={cn("font-mono text-lg", totals[item.id].isOverLimit && "text-destructive")}>{total}</StickyTableCell>
             <StickyTableCell isScrolled={isScrolled} position="left-[36rem]" width="w-24" className={cn("font-mono text-lg font-bold", remainingCellBg)}>{remaining}</StickyTableCell>
-            <StickyTableCell isScrolled={isScrolled} position="left-[42rem]" width="w-24" className={groupBorder}>
+      <StickyTableCell isScrolled={isScrolled} position="left-[42rem]" width="w-24" className={groupBorder}>
                 <div className="flex justify-center items-center">
-                    <div className={cn('h-8 w-8 rounded-full flex items-center justify-center transition-all duration-300', 
-                        totals[item.id].isOverLimit ? 'bg-rose-500/20' : (total > 0 ? 'bg-green-500/20' : 'bg-transparent')
-                    )}>
-                        {totals[item.id].isOverLimit ? <AlertTriangle className="h-5 w-5 text-destructive" /> : (total > 0 && <CheckCircle className="h-5 w-5 text-green-500" />)}
-                    </div>
+          {(() => {
+            const badgeBg = totals[item.id].isOverLimit ? 'bg-rose-500/20' : (total > 0 ? 'bg-green-500/20' : 'bg-transparent');
+            return (
+              <div className={cn('h-8 w-8 rounded-full flex items-center justify-center transition-all duration-300', badgeBg)}>
+                {totals[item.id].isOverLimit ? <AlertTriangle className="h-5 w-5 text-destructive" /> : (total > 0 && <CheckCircle className="h-5 w-5 text-green-500" />)}
+              </div>
+            )
+          })()}
                 </div>
             </StickyTableCell>
             {days.map((day: number) => {
@@ -154,16 +157,15 @@ const MemoizedTableRow = memo(React.forwardRef<HTMLTableRowElement, MemoizedRowP
 }));
 
 export function SchedulerTable() {
-    const {
-        items,
-        groups,
-        viewMode,
-        days,
-        totals,
-        toggleGroupCollapsed,
-        collapsedGroups,
-        getFilteredItems,
-    } = useScheduler();
+  const {
+    groups,
+    viewMode,
+    days,
+    totals,
+    toggleGroupCollapsed,
+    collapsedGroups,
+    getFilteredItems,
+  } = useScheduler();
 
   const [isScrolled, setIsScrolled] = useState(false);
   const [hoveredColumn, setHoveredColumn] = useState<number | null>(null);
@@ -184,13 +186,13 @@ export function SchedulerTable() {
     const filteredItems = getFilteredItems();
 
     const allItems = useMemo(() => {
-      return groups.flatMap(group => {
-        const groupItems = filteredItems.filter(item => item.group === group.name);
+      return groups.flatMap((group: any) => {
+        const groupItems = filteredItems.filter((item: any) => item.group === group.name);
         if (groupItems.length === 0) return [];
 
         const isExpanded = !collapsedGroups[group.name];
         const groupNode = { type: 'group', group, groupItems, isExpanded, id: group.name };
-        const itemNodes = isExpanded ? groupItems.map(item => ({ type: 'item', item, id: item.id })) : [];
+  const itemNodes = isExpanded ? groupItems.map((item: any) => ({ type: 'item', item, id: item.id })) : [];
         
         return [groupNode, ...itemNodes];
       });
