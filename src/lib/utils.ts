@@ -85,7 +85,7 @@ export function applyInitialAndFilters(items: Item[], filters: Filters): Item[] 
   });
 }
 
-function getDailyTotal(dayData: Record<Meal, number> | undefined): number {
+function getDailyTotal(dayData: Partial<Record<Meal, number>> | undefined): number {
   if (!dayData) return 0;
   return Object.values(dayData).reduce((sum, value) => sum + (Number(value) || 0), 0);
 }
@@ -127,10 +127,12 @@ function formatItemRow(
   const dayData: string[] = [];
   for (const day of days) {
     if (viewMode === 'general') {
-      dayData.push(String(getDailyTotal(schedule[item.id]?.[day])));
+      const daySchedule = schedule[item.id]?.[day];
+      dayData.push(String(getDailyTotal(daySchedule)));
     } else {
       for (const meal of MEALS) {
-        dayData.push(String(schedule[item.id]?.[day]?.[meal] || 0));
+        const value = schedule[item.id]?.[day]?.[meal];
+        dayData.push(String(value ?? 0));
       }
     }
   }
@@ -164,5 +166,6 @@ export function exportToCsv(
   document.body.appendChild(link);
   link.click();
   link.remove();
+}
 }
 }
