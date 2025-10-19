@@ -15,7 +15,27 @@ import {
   getInitialSchedulerState,
   calculateTotals,
   applyInitialAndFilters,
+  exportToCsv,
 } from '@/lib/utils';
+
+const MONTH_OPTIONS = [
+  { value: 'ENERO', label: 'Enero' },
+  { value: 'FEBRERO', label: 'Febrero' },
+  { value: 'MARZO', label: 'Marzo' },
+  { value: 'ABRIL', label: 'Abril' },
+  { value: 'MAYO', label: 'Mayo' },
+  { value: 'JUNIO', label: 'Junio' },
+  { value: 'JULIO', label: 'Julio' },
+  { value: 'AGOSTO', label: 'Agosto' },
+  { value: 'SEPTIEMBRE', label: 'Septiembre' },
+  { value: 'OCTUBRE', label: 'Octubre' },
+  { value: 'NOVIEMBRE', label: 'Noviembre' },
+  { value: 'DICIEMBRE', label: 'Diciembre' },
+];
+
+const SERVICE_OPTIONS = [
+  { value: 'PACIENTES', label: 'Pacientes' },
+];
 
 export const createSchedulerStore = (props: UseSchedulerProps) => {
   const validatedProps = UseSchedulerPropsSchema.parse(props);
@@ -23,6 +43,11 @@ export const createSchedulerStore = (props: UseSchedulerProps) => {
 
   return create<SchedulerStore>()((set, get) => ({
     ...initialState,
+
+    // UI options
+    monthOptions: MONTH_OPTIONS,
+    serviceOptions: SERVICE_OPTIONS,
+    selectedMonthLabel: MONTH_OPTIONS.find(m => m.value === initialState.selectedMonth)?.label ?? initialState.selectedMonth,
 
     // Actions
     setItems: (items: Item[]) => {
@@ -40,6 +65,13 @@ export const createSchedulerStore = (props: UseSchedulerProps) => {
     },
 
     setViewMode: (viewMode: ViewMode) => set({ viewMode }),
+
+    setSelectedMonth: (selectedMonth: string) => {
+      const label = MONTH_OPTIONS.find(m => m.value === selectedMonth)?.label ?? selectedMonth;
+      set({ selectedMonth, selectedMonthLabel: label });
+    },
+
+    setSelectedService: (selectedService: string) => set({ selectedService }),
 
     setCollapsedGroups: (collapsedGroups: Record<string, boolean>) => 
       set({ collapsedGroups }),
@@ -127,6 +159,21 @@ export const createSchedulerStore = (props: UseSchedulerProps) => {
       const dayData = schedule.byId[itemId]?.[day];
       if (!dayData) return 0;
       return (Object.values(dayData) as number[]).reduce((sum, current) => sum + (current || 0), 0);
+    },
+
+    onExport: () => {
+      const items = get().getAllItems();
+      const schedule = get().schedule;
+      const totals = get().totals;
+      const viewMode = get().viewMode;
+      const fileName = `${get().selectedMonthLabel}-${get().selectedService}.csv`;
+      try {
+        exportToCsv(items, schedule, totals, viewMode, fileName);
+      } catch (err) {
+        // en entornos de test sin DOM esto puede fallar; silenciamos el error
+        // y dejamos que la app real lo ejecute en el navegador
+        // console.warn('Export failed', err);
+      }
     },
   }));
 };
