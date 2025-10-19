@@ -73,9 +73,11 @@ export const SchedulerGroupHeader: React.FC<GroupHeaderProps> = ({ group, items,
       }
       return { itemCount: items.length || 0, availablePercent: 100, progressBarClass: 'bg-green-500' };
     }
-  }, [items, totals, group.name]);
+  }, [items, totals, group?.name]);
 
-  const { bg: groupBgClass, border: groupBorderClass } = GROUP_CONFIG[group.name] || GROUP_CONFIG.Default;
+  // Cálculos derivados que manejan nulos de manera segura
+  const config = group ? (GROUP_CONFIG[group.name] || GROUP_CONFIG.Default) : GROUP_CONFIG.Default;
+  const { bg: groupBgClass, border: groupBorderClass } = config;
   const groupBg = cn(groupBgClass);
   const groupBorder = cn(groupBorderClass);
 
