@@ -5,6 +5,7 @@ import I18nProvider from '@/components/I18nProvider';
 import { SchedulerProvider } from '@/components/scheduler-provider';
 import { Inter as FontSans } from "next/font/google"
 import { cn } from '@/lib/utils';
+import { initialItems, initialGroups } from '@/lib/data';
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -21,9 +22,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Importo los datos iniciales
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { initialItems, initialGroups } = require('@/lib/data');
   return (
     <html lang="es" suppressHydrationWarning>
       <body className={cn("font-sans antialiased", fontSans.variable)}>
