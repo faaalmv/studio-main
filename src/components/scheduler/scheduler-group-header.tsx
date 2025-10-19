@@ -19,16 +19,38 @@ interface GroupHeaderProps {
 }
 
 export const SchedulerGroupHeader: React.FC<GroupHeaderProps> = ({ group, items, totals, isExpanded, onToggle, colSpan, stickyTopClass }) => {
+  /**
+   * Calcula el resumen del grupo incluyendo el conteo de items y el porcentaje de disponibilidad.
+   * 
+   * @remarks
+   * Este cálculo asume que todos los items deberían tener un totalPossible definido.
+   * Si algún item no tiene totalPossible, se usará 0 como valor predeterminado,
+   * lo que podría resultar en un porcentaje de disponibilidad más alto del real.
+   * 
+   * @returns {Object} Un objeto con el conteo de items, porcentaje disponible y clase CSS para la barra de progreso
+   */
   const summary = useMemo(() => {
     if (!items || items.length === 0) {
       return { itemCount: 0, availablePercent: 100, progressBarClass: 'bg-green-500' };
+    }
+
+    // Primero verificamos si hay algún item sin totalPossible definido
+    const itemsWithoutTotal = items.filter(item => item.totalPossible === undefined || item.totalPossible === null);
+    if (itemsWithoutTotal.length > 0) {
+      console.warn(`Advertencia: ${itemsWithoutTotal.length} items en el grupo "${group.name}" no tienen totalPossible definido:`, 
+        itemsWithoutTotal.map(item => item.code));
     }
 
     const totalMax = items.reduce((acc, item) => acc + (item.totalPossible ?? 0), 0);
     const totalScheduled = items.reduce((acc, item) => acc + (totals[item.id]?.total ?? 0), 0);
 
     if (totalMax === 0) {
-        return { itemCount: items.length, availablePercent: 100, progressBarClass: 'bg-green-500' };
+      return { 
+        itemCount: items.length, 
+        availablePercent: 100, 
+        progressBarClass: 'bg-green-500',
+        hasIncompleteData: itemsWithoutTotal.length > 0
+      };
     }
 
     const scheduledPercent = (totalScheduled / totalMax) * 100;
@@ -95,9 +117,32 @@ export const SchedulerGroupHeader: React.FC<GroupHeaderProps> = ({ group, items,
               <span className="text-xs text-muted-foreground font-normal">{summary.itemCount} artículos</span>
             </div>
           </div>
-          <div className="flex items-center gap-4 w-1/3 max-w-xs" title={`Disponibilidad: ${Math.round(summary.availablePercent)}%`}>
-            <Progress value={summary.availablePercent} className="h-2" indicatorClassName={summary.progressBarClass} />
-            <span className="text-sm font-semibold w-16 text-right tabular-nums">{Math.round(summary.availablePercent)}%</span>
+          <div className="flex items-center gap-4 w-1/3 max-w-xs">
+            <div 
+              className="flex-1"
+              title={summary.hasIncompleteData 
+                ? `Advertencia: Algunos artículos no tienen límites definidos. Disponibilidad aproximada: ${Math.round(summary.availablePercent)}%`
+                : `Disponibilidad: ${Math.round(summary.availablePercent)}%`}
+            >
+              <Progress 
+                value={summary.availablePercent} 
+                className={cn("h-2", summary.hasIncompleteData && "opacity-75")} 
+                indicatorClassName={summary.progressBarClass} 
+              />
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-sm font-semibold w-16 text-right tabular-nums">
+                {Math.round(summary.availablePercent)}%
+              </span>
+              {summary.hasIncompleteData && (
+                <span 
+                  className="text-amber-500 text-sm" 
+                  title="Algunos artículos no tienen límites definidos"
+                >
+                  *
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </TableCell>
