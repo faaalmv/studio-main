@@ -6,12 +6,22 @@ import { SchedulerHeader } from "./scheduler-header";
 import { SchedulerTable } from "./scheduler-table";
 import { Card, CardContent } from "@/components/ui/card";
 import { Item, Group } from "@/lib/types";
-import { ErrorBoundary } from 'react-error-boundary';
+import { ErrorBoundary, FallbackProps } from 'react-error-boundary';
+import { Button } from '@/components/ui/button';
 
-function TableFallback() {
+// Improved fallback that logs and provides a retry button + dev details
+function TableFallback({ error, resetErrorBoundary }: FallbackProps) {
+  // Report to monitoring service (example)
+  console.error('Scheduler table render error:', error);
+
   return (
-    <div className="p-6 text-center text-sm text-muted-foreground">
-      Se ha producido un error al renderizar la tabla. Intenta recargar la página o contacta al administrador.
+    <div role="alert" className="p-6 text-center border rounded-lg m-4 bg-destructive/10">
+      <h2 className="text-lg font-semibold text-destructive">Error al cargar la tabla de programación</h2>
+      <p className="text-sm text-muted-foreground mt-1">Ha ocurrido un error inesperado que impide mostrar los datos.</p>
+      {process.env.NODE_ENV === 'development' && (
+        <pre className="mt-4 text-left text-xs bg-muted p-2 rounded overflow-auto">{error?.stack}</pre>
+      )}
+      <Button onClick={resetErrorBoundary} className="mt-4">Intentar de nuevo</Button>
     </div>
   );
 }
@@ -36,7 +46,13 @@ export function SchedulerClient({
           <Card className="w-full flex-grow overflow-hidden shadow-2xl shadow-primary/10 rounded-2xl border-primary/10 bg-card/90 backdrop-blur-sm">
             <CardContent className="p-0 h-full">
               {hasData ? (
-                <ErrorBoundary FallbackComponent={TableFallback}>
+                <ErrorBoundary
+                  FallbackComponent={TableFallback}
+                  onError={(error, info) => {
+                    // send to real monitoring if available
+                    console.error('Captured error in SchedulerTable:', error, info);
+                  }}
+                >
                   <SchedulerTable />
                 </ErrorBoundary>
               ) : (

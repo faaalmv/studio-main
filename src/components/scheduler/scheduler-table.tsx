@@ -113,18 +113,17 @@ const MemoizedTableRow = memo(React.forwardRef<HTMLTableRowElement, any>(functio
 
   return (
     <TableRow ref={ref} className={cn(rowClasses, className, "relative")} style={style} {...rest}>
-            {/* SOLUCIÓN: Primera columna como StickyTableCell nativa */}
-            <StickyTableCell isScrolled={isScrolled} position="left-0" width="w-32" className="p-2 text-left align-middle">
+            {/* Primera columna sticky (Código) usando variables CSS para left/width */}
+            <StickyTableCell isScrolled={isScrolled} style={{ left: 0, width: 'var(--col-code-width)' }} className="p-2 text-left align-middle">
               <Badge variant="secondary" className="font-mono text-xs">{item.code}</Badge>
             </StickyTableCell>
-            {/* AJUSTE: desplazar las demás celdas fijas para acomodar la primera */}
-            <StickyTableCell isScrolled={isScrolled} position="left-32" width="w-64" className="p-2 text-left align-middle">
+            <StickyTableCell isScrolled={isScrolled} style={{ left: 'calc(var(--col-code-width))', width: 'var(--col-desc-width)' }} className="p-2 text-left align-middle">
                 <div className="font-bold text-sm">{item.description}</div>
             </StickyTableCell>
-            <StickyTableCell isScrolled={isScrolled} position="left-96" width="w-24">{item.unit}</StickyTableCell>
-            <StickyTableCell isScrolled={isScrolled} position="left-[30rem]" width="w-24" className={cn("font-mono text-lg", totals[item.id].isOverLimit && "text-destructive")}>{total}</StickyTableCell>
-            <StickyTableCell isScrolled={isScrolled} position="left-[36rem]" width="w-24" className={cn("font-mono text-lg font-bold", remainingCellBg)}>{remaining}</StickyTableCell>
-      <StickyTableCell isScrolled={isScrolled} position="left-[42rem]" width="w-24" className={groupBorder}>
+            <StickyTableCell isScrolled={isScrolled} style={{ left: 'calc(var(--col-code-width) + var(--col-desc-width))', width: 'var(--col-unit-width)' }}>{item.unit}</StickyTableCell>
+            <StickyTableCell isScrolled={isScrolled} style={{ left: 'calc(var(--col-code-width) + var(--col-desc-width) + var(--col-unit-width))', width: 'var(--col-total-width)' }} className={cn("font-mono text-lg", totals[item.id].isOverLimit && "text-destructive")}>{total}</StickyTableCell>
+            <StickyTableCell isScrolled={isScrolled} style={{ left: 'calc(var(--col-code-width) + var(--col-desc-width) + var(--col-unit-width) + var(--col-total-width))', width: 'var(--col-rest-width)' }} className={cn("font-mono text-lg font-bold", remainingCellBg)}>{remaining}</StickyTableCell>
+      <StickyTableCell isScrolled={isScrolled} style={{ left: 'calc(var(--col-code-width) + var(--col-desc-width) + var(--col-unit-width) + var(--col-total-width) + var(--col-rest-width))', width: 'var(--col-status-width)' }} className={groupBorder}>
                 <div className="flex justify-center items-center">
           {(() => {
             let badgeBg = 'bg-transparent';
@@ -269,20 +268,20 @@ export function SchedulerTable() {
           role="grid"
           aria-label="Programación de alimentos"
           aria-rowcount={allItems.length}
-          style={{ height: `${rowVirtualizer.getTotalSize()}px` }}
+          style={{ ...STICKY_COLUMN_STYLES, height: `${rowVirtualizer.getTotalSize()}px` }}
           className="min-w-max border-separate border-spacing-0 relative"
         >
           <TableHeader className="sticky top-0 z-30 bg-card">
             <TableRow className="hover:bg-transparent">
               {/* Primera columna sticky (Código) */}
-              <StickyTableCell isHeader isScrolled={isScrolled} position="left-0" width="w-32" className={cn(headerCellStyles, "z-40 border-b text-left", isScrolled && "shadow-lg")}>
+              <StickyTableCell isHeader isScrolled={isScrolled} style={{ left: 0, width: 'var(--col-code-width)' }} className={cn(headerCellStyles, "z-40 border-b text-left", isScrolled && "shadow-lg")}>
                 Código
               </StickyTableCell>
-              <TableHead className={cn(headerCellStyles, "w-64 z-40 border-b text-left", isScrolled && "shadow-lg")}>Descripción</TableHead>
-              <TableHead className={cn(headerCellStyles, "w-24 z-40 border-b text-center", isScrolled && "shadow-lg")}>Unidad</TableHead>
-              <TableHead className={cn(headerCellStyles, "w-24 z-40 border-b", isScrolled && "shadow-lg")}>Total</TableHead>
-              <TableHead className={cn(headerCellStyles, "w-24 z-40 border-b", isScrolled && "shadow-lg")}>Rest.</TableHead>
-              <TableHead className={cn(headerCellStyles, "w-24 z-40 border-b", isScrolled && "shadow-lg")}>Estado</TableHead>
+              <TableHead className={cn(headerCellStyles, "z-40 border-b text-left", isScrolled && "shadow-lg")} style={{ width: 'var(--col-desc-width)' }}>Descripción</TableHead>
+              <TableHead className={cn(headerCellStyles, "z-40 border-b text-center", isScrolled && "shadow-lg")} style={{ width: 'var(--col-unit-width)' }}>Unidad</TableHead>
+              <TableHead className={cn(headerCellStyles, "z-40 border-b", isScrolled && "shadow-lg")} style={{ width: 'var(--col-total-width)' }}>Total</TableHead>
+              <TableHead className={cn(headerCellStyles, "z-40 border-b", isScrolled && "shadow-lg")} style={{ width: 'var(--col-rest-width)' }}>Rest.</TableHead>
+              <TableHead className={cn(headerCellStyles, "z-40 border-b", isScrolled && "shadow-lg")} style={{ width: 'var(--col-status-width)' }}>Estado</TableHead>
               {days.map((day: number) => (
                 <TableHead key={day} colSpan={viewMode === 'detailed' ? 3 : 1} className={cn(headerCellStyles, "w-24 border-b border-l transition-colors duration-200", hoveredColumn === day && "bg-primary/5")} onMouseEnter={() => handleColumnHover(day)} onMouseLeave={() => handleColumnHover(null)}>
                   {day}
