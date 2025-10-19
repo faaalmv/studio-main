@@ -235,42 +235,7 @@ export function SchedulerTable() {
     overscan: 10,
   });
 
-  // Callback factories: creadas en el padre para evitar crear lógica en cada fila.
-  const makeOnDetailedValueChange = useCallback((itemId: string, day: number, meal: Meal) => (newValue: number) => {
-    updateQuantity(itemId, day, meal, newValue);
-  }, [updateQuantity]);
-
-  const makeOnGeneralValueChange = useCallback((itemId: string, day: number, dailyTotal: number) => (newValue: number) => {
-    const diff = newValue - dailyTotal;
-    if (diff === 0) return;
-
-    const currentMeals = schedule[itemId]?.[day] || {};
-    const MEALS_ORDER: string[] = ['desayuno', 'comida', 'cena'];
-    const mealsWithValues = MEALS_ORDER.filter((meal) => (currentMeals[meal] ?? 0) > 0);
-
-    if (diff > 0 && mealsWithValues.length === 0) {
-      const current = currentMeals['desayuno'] ?? 0;
-      updateQuantity(itemId, day, 'desayuno', current + diff);
-      return;
-    }
-
-    if (mealsWithValues.length > 0) {
-      const firstMealToUpdate = mealsWithValues[0];
-      const currentMealValue = currentMeals[firstMealToUpdate] ?? 0;
-      const newVal = Math.max(0, currentMealValue + diff);
-      updateQuantity(itemId, day, firstMealToUpdate as Meal, newVal);
-      return;
-    }
-
-    if (diff < 0) {
-      const mealsNonZero = MEALS_ORDER.filter((meal) => (currentMeals[meal] ?? 0) > 0);
-      if (mealsNonZero.length > 0) {
-        const target = mealsNonZero.at(-1);
-        const currentTargetVal = target ? (currentMeals[target] ?? 0) : 0;
-        if (target) updateQuantity(itemId, day, target as Meal, Math.max(0, currentTargetVal + diff));
-      }
-    }
-  }, [schedule, updateQuantity]);
+  // Callback factories removed: rows use useScheduler directly to call updateQuantity
 
   const mealHeaderTop = `top-[2.5rem]`;
     const groupHeaderTop = viewMode === 'detailed' ? 'top-[5rem]' : 'top-[2.5rem]';
@@ -384,8 +349,6 @@ export function SchedulerTable() {
           onFocus={() => setFocusedIndex(virtualItem.index)}
           tabIndex={-1}
           {...{ className: 'flex', isScrolled, hoveredColumn }}
-          makeOnDetailedValueChange={makeOnDetailedValueChange}
-          makeOnGeneralValueChange={makeOnGeneralValueChange}
           getDailyTotal={getDailyTotal}
         />
               )
