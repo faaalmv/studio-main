@@ -14,12 +14,12 @@ export function getInitialSchedulerState(props: UseSchedulerProps): SchedulerSta
   
   // Initialize empty schedule for all items
   const schedule: Schedule = {};
-  items.forEach(item => {
+  for (const item of items) {
     schedule[item.id] = {};
-    days.forEach(day => {
+    for (const day of days) {
       schedule[item.id][day] = { desayuno: 0, almuerzo: 0, cena: 0 };
-    });
-  });
+    }
+  }
 
   return {
     items,
@@ -37,10 +37,19 @@ export function getInitialSchedulerState(props: UseSchedulerProps): SchedulerSta
 
 export function calculateTotals(items: Item[]): Totals {
   const totals: Totals = {};
-  items.forEach(item => {
-    const totalUsed = Object.values(item.dailyData || {}).reduce((total, day) => {
-      return total + Object.values(day).reduce((dayTotal, value) => dayTotal + value, 0);
-    }, 0);
+  
+  for (const item of items) {
+    let totalUsed = 0;
+    
+    if (item.dailyData) {
+      for (const [_, dayData] of Object.entries(item.dailyData)) {
+        let dayTotal = 0;
+        for (const [__, mealValue] of Object.entries(dayData)) {
+          dayTotal += Number(mealValue) || 0;
+        }
+        totalUsed += dayTotal;
+      }
+    }
     
     totals[item.id] = {
       total: totalUsed,
@@ -48,15 +57,16 @@ export function calculateTotals(items: Item[]): Totals {
       totalPossible: item.totalPossible,
       isOverLimit: totalUsed > item.totalPossible,
     };
-  });
+  }
+  
   return totals;
 }
 
-export function applyInitialAndFilters(items: Item[], filters: any): Item[] {
+export function applyInitialAndFilters(items: Item[], filters: Record<string, unknown>): Item[] {
   if (!filters || Object.keys(filters).length === 0) return items;
   
-  const searchQuery = (filters.search || '').toLowerCase();
-  const groupFilter = filters.group || '';
+  const searchQuery = String(filters.search || '').toLowerCase();
+  const groupFilter = String(filters.group || '');
   
   return items.filter(item => {
     const matchesSearch = !searchQuery || 
@@ -69,7 +79,7 @@ export function applyInitialAndFilters(items: Item[], filters: any): Item[] {
   });
 }
 
-export function exportToCsv(items: Item[], schedule: Schedule, totals: Totals, viewMode: ViewMode, fileName: string) {
+export function exportToCsv(items: Item[], schedule: Schedule, totals: Totals, viewMode: ViewMode, fileName: string): void {
   const rows: string[] = [];
   
   // Add headers
@@ -77,36 +87,47 @@ export function exportToCsv(items: Item[], schedule: Schedule, totals: Totals, v
   const days = Array.from({ length: DAYS_IN_MONTH }, (_, i) => i + 1);
 
   if (viewMode === 'general') {
-    days.forEach(day => headers.push(`Día ${day}`));
+    for (const day of days) {
+      headers.push(`Día ${day}`);
+    }
   } else {
-    days.forEach(day => {
-      MEALS.forEach(meal => headers.push(`Día ${day} ${meal.charAt(0).toUpperCase() + meal.slice(1)}`));
-    });
+    for (const day of days) {
+      for (const meal of MEALS) {
+        headers.push(`Día ${day} ${meal.charAt(0).toUpperCase() + meal.slice(1)}`);
+      }
+    }
   }
   rows.push(headers.map(header => `"${header}"`).join(','));
 
   // Add data rows
-  items.forEach(item => {
+  for (const item of items) {
     const row = [
-      `"${item.description.replace(/"/g, '""')}"`,
+      `"${item.description.replaceAll('"', '""')}"`,
       `"${item.code}"`,
       `"${item.group}"`,
       String(totals[item.id].total),
       String(totals[item.id].remaining)
     ];
 
-    days.forEach(day => {
+    for (const day of days) {
       if (viewMode === 'general') {
-        const dailyTotal = Object.values(schedule[item.id]?.[day] || {}).reduce((a, b) => a + b, 0);
+        let dailyTotal = 0;
+        const dayData = schedule[item.id]?.[day];
+        if (dayData) {
+          for (const mealValue of Object.values(dayData)) {
+            dailyTotal += Number(mealValue) || 0;
+          }
+        }
         row.push(String(dailyTotal));
       } else {
-        MEALS.forEach(meal => {
-          row.push(String(schedule[item.id]?.[day]?.[meal] || 0));
-        });
+        for (const meal of MEALS) {
+          const value = schedule[item.id]?.[day]?.[meal] || 0;
+          row.push(String(value));
+        }
       }
-    });
+    }
     rows.push(row.join(','));
-  });
+  }
 
   const csvContent = 'data:text/csv;charset=utf-8,' + rows.map(row => 
     row.split(',').map(cell => encodeURIComponent(cell)).join(',')
@@ -117,5 +138,5 @@ export function exportToCsv(items: Item[], schedule: Schedule, totals: Totals, v
   link.setAttribute("download", fileName);
   document.body.appendChild(link);
   link.click();
-  document.body.removeChild(link);
+  link.remove();
 }
