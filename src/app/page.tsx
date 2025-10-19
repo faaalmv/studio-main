@@ -1,13 +1,17 @@
 
-"use client";
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 import { SchedulerClient } from "@/components/scheduler/scheduler-client";
 import { initialItems, initialGroups } from "@/lib/data";
 
-export default function Home() {
+export default async function Home() {
   return (
-    <main>
-      <SchedulerClient items={initialItems} groups={initialGroups} />
+    <main className="container mx-auto">
+      <SchedulerClient 
+        items={initialItems} 
+        groups={initialGroups} 
+      />
     </main>
   );
 }
