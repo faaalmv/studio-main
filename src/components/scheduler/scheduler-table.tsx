@@ -32,9 +32,7 @@ const StickyTableCell = React.forwardRef<HTMLTableCellElement, { isScrolled: boo
 ));
 StickyTableCell.displayName = 'StickyTableCell';
 
-type MemoizedRowProps = { item: any; style: React.CSSProperties; isScrolled: boolean; hoveredColumn: number | null } & React.HTMLAttributes<HTMLTableRowElement>;
-
-const MemoizedTableRow = memo(React.forwardRef<HTMLTableRowElement, MemoizedRowProps>(function MemoizedTableRow({ item, isLast, style, className, isScrolled, hoveredColumn, ...rest }, ref) {
+const MemoizedTableRow = memo(React.forwardRef<HTMLTableRowElement, any>(function MemoizedTableRow({ item, style, className, isScrolled, hoveredColumn, ...rest }, ref) {
     const id = useId();
     const {
         schedule,
@@ -300,17 +298,14 @@ export function SchedulerTable() {
               
               const { item } = row;
               return (
-                <MemoizedTableRow
-                    ref={node => rowVirtualizer.measureElement(node)}
-                    data-index={virtualItem.index}
-                    key={virtualItem.key}
-                    item={item}
-                    isLast={false}
-                    style={{...commonStyle, animationDelay: `${virtualItem.index * 30}ms` }}
-                    className="flex"
-                    isScrolled={isScrolled}
-                    hoveredColumn={hoveredColumn}
-                />
+        <MemoizedTableRow
+          ref={node => rowVirtualizer.measureElement(node)}
+          data-index={virtualItem.index}
+          key={virtualItem.key}
+          item={item}
+          style={{...commonStyle, animationDelay: `${virtualItem.index * 30}ms` }}
+          {...{ className: 'flex', isScrolled, hoveredColumn }}
+        />
               )
             })}
           </TableBody>
