@@ -1,7 +1,6 @@
 
 import { create } from 'zustand';
 import {
-  SchedulerState,
   SchedulerStore,
   UseSchedulerProps,
   Item,
