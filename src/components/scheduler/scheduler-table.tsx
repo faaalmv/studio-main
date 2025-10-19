@@ -346,7 +346,7 @@ export function SchedulerTable() {
           aria-rowindex={virtualItem.index + 1}
           onFocus={() => setFocusedIndex(virtualItem.index)}
           tabIndex={-1}
-          {...{ className: 'flex', isScrolled, hoveredColumn }}
+          {...{ isScrolled, hoveredColumn }}
           getDailyTotal={getDailyTotal}
         />
               )
