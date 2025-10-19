@@ -8,6 +8,11 @@ export const MEALS: Meal[] = ['desayuno', 'almuerzo', 'cena'];
 
 export const DAYS_IN_MONTH = 31;
 
+export const DailyDataSchema = z.record(
+  z.coerce.number().int().min(1).max(DAYS_IN_MONTH),
+  z.record(MealSchema, z.number().int().min(0))
+);
+
 export const ItemSchema = z.object({
   id: z.string(),
   code: z.string(),
@@ -15,6 +20,7 @@ export const ItemSchema = z.object({
   group: z.string(),
   totalPossible: z.number().int().min(0),
   unit: z.string(),
+  dailyData: DailyDataSchema.optional(),
 });
 export type Item = z.infer<typeof ItemSchema>;
 
