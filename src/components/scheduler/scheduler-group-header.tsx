@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
 import { ChevronDown } from "lucide-react";
@@ -21,6 +22,7 @@ interface GroupHeaderProps {
 }
 
 export const SchedulerGroupHeader: React.FC<GroupHeaderProps> = ({ group, items, totals, isExpanded, onToggle, colSpan, stickyTopClass, style }) => {
+  const { t } = useTranslation();
   /**
    * Calcula el resumen del grupo incluyendo el conteo de items y el porcentaje de disponibilidad.
    */
@@ -90,19 +92,16 @@ export const SchedulerGroupHeader: React.FC<GroupHeaderProps> = ({ group, items,
               })}
             />
             <div className="flex flex-col text-left">
-              {/* TODO: i18n para group.name si aplica */}
               <span className="font-bold text-sm uppercase tracking-wider">{group.name}</span>
-              {/* TODO: i18n para "artículos" */}
-              <span className="text-xs text-muted-foreground font-normal">{summary.itemCount} artículos</span>
+              <span className="text-xs text-muted-foreground font-normal">{summary.itemCount} {t('articulos')}</span>
             </div>
           </div>
           <div className="flex items-center gap-4 w-1/3 max-w-xs">
             <div 
               className="flex-1"
-              // TODO: i18n para los textos de disponibilidad
               title={summary.hasIncompleteData 
-                ? `Advertencia: Algunos artículos no tienen límites definidos. Disponibilidad aproximada: ${Math.round(summary.availablePercent)}%`
-                : `Disponibilidad: ${Math.round(summary.availablePercent)}%`}
+                ? t('advertencia_incompleto', { percent: Math.round(summary.availablePercent) })
+                : t('disponibilidad', { percent: Math.round(summary.availablePercent) })}
             >
               <Progress 
                 value={summary.availablePercent} 
@@ -117,7 +116,7 @@ export const SchedulerGroupHeader: React.FC<GroupHeaderProps> = ({ group, items,
               {summary.hasIncompleteData && (
                 <span 
                   className="text-amber-500 text-sm" 
-                  title="Algunos artículos no tienen límites definidos"
+                  title={t('algunos_sin_limite')}
                 >
                   *
                 </span>

@@ -2,6 +2,7 @@
 "use client";
 
 import { useCallback, useId } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Input } from "@/components/ui/input";
 import { ChevronUp, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -28,6 +29,7 @@ interface QuantityStepperProps {
  * @returns {JSX.Element} The rendered quantity stepper.
  */
 export function QuantityStepper({ value, onValueChange, onCommit, max, 'aria-labelledby': ariaLabelledby }: Readonly<QuantityStepperProps>) {
+  const { t } = useTranslation();
   const inputId = useId();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -102,7 +104,7 @@ export function QuantityStepper({ value, onValueChange, onCommit, max, 'aria-lab
           type="button"
           onClick={() => handleStep(1)}
           className="h-1/2 w-full text-slate-400 hover:text-slate-800 transition-opacity duration-200 opacity-0 group-hover:opacity-100 focus:opacity-100 flex items-center justify-center"
-          aria-label="Incrementar valor" // TODO: i18n
+          aria-label={t('incrementar_valor')}
           aria-controls={inputId}
         >
           <ChevronUp className="h-4 w-4" />
@@ -112,7 +114,7 @@ export function QuantityStepper({ value, onValueChange, onCommit, max, 'aria-lab
           onClick={() => handleStep(-1)} 
           disabled={!value || value <= 0}
           className="h-1/2 w-full text-slate-400 hover:text-slate-800 transition-opacity duration-200 opacity-0 group-hover:opacity-100 focus:opacity-100 disabled:opacity-0 disabled:cursor-not-allowed flex items-center justify-center"
-          aria-label="Disminuir valor" // TODO: i18n
+          aria-label={t('disminuir_valor')}
           aria-controls={inputId}
         >
           <ChevronDown className="h-4 w-4" />
