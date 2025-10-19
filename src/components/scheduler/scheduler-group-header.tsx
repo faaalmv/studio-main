@@ -24,9 +24,13 @@ interface GroupHeaderProps {
 export const SchedulerGroupHeader: React.FC<GroupHeaderProps> = ({ group, items, totals, isExpanded, onToggle, colSpan, stickyTopClass, style }) => {
   const { t } = useTranslation();
 
-  // Mover la verificación de group aquí para evitar problemas con hooks
+  // Para evitar romper el orden de hooks, no retornamos temprano. Si no hay group, renderizamos un TableRow vacío.
   if (!group) {
-    return null;
+    return (
+      <TableRow style={style} className={cn("group hover:z-20", stickyTopClass)}>
+        <TableCell colSpan={colSpan} className={cn("p-0 border-b")}></TableCell>
+      </TableRow>
+    );
   }
 
   /**
