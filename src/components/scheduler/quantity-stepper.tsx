@@ -64,14 +64,10 @@ export function QuantityStepper({ value, onValueChange, onCommit, max, 'aria-lab
   return (
     <div className="group relative flex items-center justify-center w-full h-full transition-transform duration-150 ease-in-out focus-within:z-10 focus-within:scale-110">
       <Input
-        role="spinbutton"
-        aria-valuenow={value}
-        aria-valuemin={0}
-        aria-valuemax={max}
+        type="number"
+        min={0}
+        max={max}
         aria-labelledby={ariaLabelledby}
-        type="text"
-        pattern="[0-9]*"
-        inputMode="numeric"
         value={value === 0 ? '' : String(value)}
         onChange={handleInputChange}
         onBlur={onCommit}
@@ -80,6 +76,7 @@ export function QuantityStepper({ value, onValueChange, onCommit, max, 'aria-lab
           "h-full w-full rounded-none border-0 p-2 pr-5 text-center text-sm shadow-none transition-all duration-150 [appearance:textfield] focus:bg-primary/10 focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0",
           "placeholder:text-muted-foreground/50",
           "disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed",
+          "[&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
           { "font-semibold text-primary": value > 0 },
         )}
         placeholder="0"
