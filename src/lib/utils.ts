@@ -68,11 +68,17 @@ export function calculateTotals(items: Item[]): Totals {
       }
     }
     
+    const remaining = item.totalPossible - totalUsed;
+    const unusedCapacityPercent = item.totalPossible > 0
+      ? Math.max(0, Math.min(100, (remaining / item.totalPossible) * 100))
+      : 0;
+
     totals[item.id] = {
       total: totalUsed,
-      remaining: item.totalPossible - totalUsed,
+      remaining,
       totalPossible: item.totalPossible,
       isOverLimit: totalUsed > item.totalPossible,
+      unusedCapacityPercent,
     };
   }
   

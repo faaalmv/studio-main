@@ -38,6 +38,7 @@ export const TotalsSchema = z.record(z.string(), z.object({
   remaining: z.number().int().min(0),
   totalPossible: z.number().int().min(0),
   isOverLimit: z.boolean(),
+  unusedCapacityPercent: z.number().min(0).max(100),
 }));
 export type Totals = z.infer<typeof TotalsSchema>;
 

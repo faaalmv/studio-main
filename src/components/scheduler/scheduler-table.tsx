@@ -59,8 +59,7 @@ const MemoizedTableRow = memo(React.forwardRef<HTMLTableRowElement, any>(functio
 
   const { remaining, percentage } = useMemo(() => {
     const remaining = totals[item.id].remaining;
-    const totalPossible = totals[item.id].totalPossible;
-    const percentage = totalPossible > 0 ? (remaining / totalPossible) * 100 : 100;
+    const percentage = Math.max(0, Math.min(100, totals[item.id].unusedCapacityPercent ?? 0));
     return { remaining, percentage };
   }, [totals, item.id]);
     

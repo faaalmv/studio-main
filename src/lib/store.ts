@@ -9,7 +9,7 @@ import {
   Filters,
   FilterSchema,
   UseSchedulerPropsSchema,
-  Schedule,
+  
 } from '@/lib/types';
 import {
   getInitialSchedulerState,
@@ -102,14 +102,12 @@ export const createSchedulerStore = (props: UseSchedulerProps) => {
         return;
       }
 
+      const existingItemSchedule = schedule.byId[itemId];
       const newSchedule = {
         ...schedule,
         byId: {
           ...schedule.byId,
-          [itemId]: {
-            ...(schedule.byId[itemId] || {}),
-            [day]: newDayData,
-          },
+          [itemId]: existingItemSchedule ? { ...existingItemSchedule, [day]: newDayData } : { [day]: newDayData },
         },
       };
 

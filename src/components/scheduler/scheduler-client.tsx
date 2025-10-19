@@ -5,7 +5,8 @@ import { SchedulerProvider } from "@/components/scheduler-provider";
 import { SchedulerHeader } from "./scheduler-header";
 import { SchedulerTable } from "./scheduler-table";
 import { Card, CardContent } from "@/components/ui/card";
-import { Item, Group } from "@/lib/types";
+import { Item, Group, ItemSchema, GroupSchema } from "@/lib/types";
+import { z } from 'zod';
 import { ErrorBoundary, FallbackProps } from 'react-error-boundary';
 import { Button } from '@/components/ui/button';
 
@@ -33,7 +34,23 @@ export function SchedulerClient({
   items: Item[];
   groups: Group[];
 }>) {
-  // Validación simple de entrada
+  // Validate props shape using Zod
+  const schedulerClientPropsSchema = z.object({
+    items: z.array(ItemSchema),
+    groups: z.array(GroupSchema),
+  });
+
+  try {
+    schedulerClientPropsSchema.parse({ items, groups });
+  } catch (err) {
+    console.error('Error de validación de datos de entrada:', err);
+    return (
+      <div className="p-4 text-destructive">
+        Error: Los datos proporcionados para el planificador son inválidos.
+      </div>
+    );
+  }
+
   const hasData = Array.isArray(items) && items.length > 0 && Array.isArray(groups) && groups.length > 0;
 
   return (
