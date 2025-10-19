@@ -75,7 +75,9 @@ export const createSchedulerStore = (props: UseSchedulerProps) => {
         byId: {
           ...schedule.byId,
           [itemId]: {
-            ...(schedule.byId[itemId] || {}),
+            ...(schedule.byId[itemId] || {
+              [day]: { desayuno: 0, almuerzo: 0, cena: 0 }
+            }),
             [day]: viewMode === 'detailed'
               ? { ...currentDayData, [mealType]: value }
               : { desayuno: value, almuerzo: 0, cena: 0 },
