@@ -16,9 +16,10 @@ interface GroupHeaderProps {
   onToggle: () => void;
   colSpan: number;
   stickyTopClass: string;
+  style?: React.CSSProperties;
 }
 
-export const SchedulerGroupHeader: React.FC<GroupHeaderProps> = ({ group, items, totals, isExpanded, onToggle, colSpan, stickyTopClass }) => {
+export const SchedulerGroupHeader: React.FC<GroupHeaderProps> = ({ group, items, totals, isExpanded, onToggle, colSpan, stickyTopClass, style }) => {
   /**
    * Calcula el resumen del grupo incluyendo el conteo de items y el porcentaje de disponibilidad.
    * 
@@ -99,6 +100,7 @@ export const SchedulerGroupHeader: React.FC<GroupHeaderProps> = ({ group, items,
 
   return (
     <TableRow
+      style={style}
       className={cn("cursor-pointer group hover:z-20", stickyTopClass)}
       onClick={onToggle}
       aria-expanded={isExpanded}
