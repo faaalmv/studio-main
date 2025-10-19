@@ -32,7 +32,7 @@ const StickyTableCell = React.forwardRef<HTMLTableCellElement, { isScrolled: boo
 ));
 StickyTableCell.displayName = 'StickyTableCell';
 
-const MemoizedTableRow = memo(React.forwardRef<HTMLTableRowElement, any>(function MemoizedTableRow({ item, style, className, isScrolled, hoveredColumn, makeOnDetailedValueChange, makeOnGeneralValueChange, getDailyTotal, ...rest }, ref) {
+const MemoizedTableRow = memo(React.forwardRef<HTMLTableRowElement, any>(function MemoizedTableRow({ item, style, className, isScrolled, hoveredColumn, getDailyTotal, ...rest }, ref) {
     const id = useId();
     const {
         schedule,
@@ -69,14 +69,11 @@ const MemoizedTableRow = memo(React.forwardRef<HTMLTableRowElement, any>(functio
 
   // If factories are provided by parent, use them. Otherwise fall back to local implementations.
   const onDetailedValueChange = useCallback((day: number, meal: Meal) => (newValue: number) => {
-    if (makeOnDetailedValueChange) return makeOnDetailedValueChange(item.id, day, meal)(newValue);
-    // fallback
     updateQuantity(item.id, day, meal, newValue);
-  }, [item.id, makeOnDetailedValueChange, updateQuantity]);
+  }, [item.id, updateQuantity]);
 
   const onGeneralValueChange = useCallback((day: number, dailyTotal: number) => (newValue: number) => {
-    if (makeOnGeneralValueChange) return makeOnGeneralValueChange(item.id, day, dailyTotal)(newValue);
-    // fallback: same behavior as parent factory
+    // same behavior as previous parent factory but using updateQuantity directly
     const diff = newValue - dailyTotal;
     if (diff === 0) return;
     const currentMeals = schedule[item.id]?.[day] || {};
@@ -102,7 +99,7 @@ const MemoizedTableRow = memo(React.forwardRef<HTMLTableRowElement, any>(functio
         if (target) updateQuantity(item.id, day, target as Meal, Math.max(0, currentTargetVal + diff));
       }
     }
-  }, [item.id, makeOnGeneralValueChange, schedule, updateQuantity]);
+  }, [item.id, schedule, updateQuantity]);
 
   return (
     <TableRow ref={ref} className={cn(rowClasses, className, "relative")} style={style} {...rest}>
