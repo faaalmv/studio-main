@@ -1,7 +1,7 @@
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
-import '../i18n';
+import I18nProvider from '@/components/I18nProvider';
 import { Inter as FontSans } from "next/font/google"
 import { cn } from '@/lib/utils';
 
@@ -23,8 +23,10 @@ export default function RootLayout({
   return (
     <html lang="es" suppressHydrationWarning>
       <body className={cn("font-sans antialiased", fontSans.variable)}>
-        {children}
-        <Toaster />
+        <I18nProvider>
+          {children}
+          <Toaster />
+        </I18nProvider>
       </body>
     </html>
   );
