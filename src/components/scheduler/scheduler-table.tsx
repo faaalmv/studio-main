@@ -32,7 +32,7 @@ const StickyTableCell = React.forwardRef<HTMLTableCellElement, { isScrolled: boo
 ));
 StickyTableCell.displayName = 'StickyTableCell';
 
-type MemoizedRowProps = { item: any; isLast: boolean; style: React.CSSProperties; className: string; isScrolled: boolean; hoveredColumn: number | null } & React.HTMLAttributes<HTMLTableRowElement>;
+type MemoizedRowProps = { item: any; style: React.CSSProperties; isScrolled: boolean; hoveredColumn: number | null } & React.HTMLAttributes<HTMLTableRowElement>;
 
 const MemoizedTableRow = memo(React.forwardRef<HTMLTableRowElement, MemoizedRowProps>(function MemoizedTableRow({ item, isLast, style, className, isScrolled, hoveredColumn, ...rest }, ref) {
     const id = useId();
@@ -50,12 +50,12 @@ const MemoizedTableRow = memo(React.forwardRef<HTMLTableRowElement, MemoizedRowP
     const groupStyle = GROUP_STYLES[item.group] || {};
     const groupBorder = cn("shadow-[inset_4px_0_6px_-4px_var(--group-color)]", groupStyle.groupColor);
 
-    const { remaining, totalPossible, percentage } = useMemo(() => {
-        const remaining = totals[item.id].remaining;
-        const totalPossible = totals[item.id].totalPossible;
-        const percentage = totalPossible > 0 ? (remaining / totalPossible) * 100 : 100;
-        return { remaining, totalPossible, percentage };
-    }, [totals, item.id]);
+  const { remaining, percentage } = useMemo(() => {
+    const remaining = totals[item.id].remaining;
+    const totalPossible = totals[item.id].totalPossible;
+    const percentage = totalPossible > 0 ? (remaining / totalPossible) * 100 : 100;
+    return { remaining, percentage };
+  }, [totals, item.id]);
     
     const getRemainingCellBg = (percentage: number) => {
         if (percentage > 75) return REMAINING_CELL_BG_CLASSES.gt75;
@@ -70,15 +70,15 @@ const MemoizedTableRow = memo(React.forwardRef<HTMLTableRowElement, MemoizedRowP
     const total = totals[item.id].total;
     const rowClasses = "group row-transition animate-slide-down-fade-in hover:z-10";
 
-    const onDetailedValueChange = useCallback((day, meal) => (newValue) => {
-        updateQuantity(item.id, day, meal, newValue)
-    }, [item.id, updateQuantity]);
+  const onDetailedValueChange = useCallback((day: number, meal: Meal) => (newValue: number) => {
+    updateQuantity(item.id, day, meal, newValue)
+  }, [item.id, updateQuantity]);
 
-    const onGeneralValueChange = useCallback((day, dailyTotal) => (newValue) => {
-        const diff = newValue - dailyTotal;
-        const currentBreakfast = schedule[item.id]?.[day]?.desayuno ?? 0;
-        updateQuantity(item.id, day, 'desayuno', currentBreakfast + diff);
-    }, [item.id, schedule, updateQuantity]);
+  const onGeneralValueChange = useCallback((day: number, dailyTotal: number) => (newValue: number) => {
+    const diff = newValue - dailyTotal;
+    const currentBreakfast = schedule[item.id]?.[day]?.desayuno ?? 0;
+    updateQuantity(item.id, day, 'desayuno', currentBreakfast + diff);
+  }, [item.id, schedule, updateQuantity]);
 
   return (
     <TableRow ref={ref} className={cn(rowClasses, className, "relative")} style={style} {...rest}>
@@ -282,7 +282,7 @@ export function SchedulerTable() {
 
               if (row.type === 'group') {
                 const { group, groupItems, isExpanded } = row;
-                const colSpan = 5 + (viewMode === 'detailed' ? days.length * 3 : days.length); // 5 columnas sin sticky
+                const colSpan = 6 + (viewMode === 'detailed' ? days.length * 3 : days.length); // 6 columnas incluyendo la columna sticky
                 return (
                   <SchedulerGroupHeader
                     key={virtualItem.key}
