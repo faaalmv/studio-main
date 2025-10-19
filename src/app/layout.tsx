@@ -2,6 +2,7 @@ import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import I18nProvider from '@/components/I18nProvider';
+import { SchedulerProvider } from '@/components/scheduler-provider';
 import { Inter as FontSans } from "next/font/google"
 import { cn } from '@/lib/utils';
 
@@ -20,12 +21,17 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Importo los datos iniciales
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { initialItems, initialGroups } = require('@/lib/data');
   return (
     <html lang="es" suppressHydrationWarning>
       <body className={cn("font-sans antialiased", fontSans.variable)}>
         <I18nProvider>
-          {children}
-          <Toaster />
+          <SchedulerProvider items={initialItems} groups={initialGroups}>
+            {children}
+            <Toaster />
+          </SchedulerProvider>
         </I18nProvider>
       </body>
     </html>
