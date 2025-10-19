@@ -12,20 +12,32 @@ import { initialItems, initialGroups } from '@/lib/data';
 export const useScheduler = () => {
   const store = useContext(SchedulerContext);
   const localRef = useRef<() => any>();
-  if (store) return store();
 
-  // Fallback para entornos de test o uso aislado
-  if (!localRef.current) {
-    localRef.current = createSchedulerStore({ items: initialItems, groups: initialGroups });
-  }
+  // Obtenemos el raw store factory: desde contexto o creamos uno local
+  const getStore = store ?? (() => {
+    if (!localRef.current) {
+      localRef.current = createSchedulerStore({ items: initialItems, groups: initialGroups });
+    }
+    return localRef.current;
+  })();
 
-  // Devolvemos el store, pero añadimos algunas propiedades derivadas para
-  // mantener compatibilidad con tests/componentes que esperan otras formas.
-  const s = localRef.current();
+  const s = getStore();
+
+  // Normalizamos la API: items como array, groups como array, filter/setFilter
+  const itemsArray = typeof s.getAllItems === 'function' ? s.getAllItems() : (Array.isArray(s.items) ? s.items : []);
+  const groupsArray = typeof s.getAllGroups === 'function' ? s.getAllGroups() : (Array.isArray(s.groups) ? s.groups : []);
+
   return {
     ...s,
-    items: s.getAllItems(),
-    filter: s.filters?.search ?? '',
-    setFilter: (value: string) => s.setFilters({ ...(s.filters ?? {}), search: value }),
+    items: itemsArray,
+    groups: groupsArray,
+    filter: s.filters?.search ?? s.filter ?? '',
+    setFilter: (value: string) => {
+      if (typeof s.setFilters === 'function') {
+        s.setFilters({ ...(s.filters || {}), search: value });
+      } else if (typeof s.setFilter === 'function') {
+        s.setFilter(value);
+      }
+    },
   };
 };
