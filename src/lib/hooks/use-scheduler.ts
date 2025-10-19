@@ -24,7 +24,7 @@ export const useScheduler = () => {
   const s = getStore();
 
   // Normalizamos la API: items como array, groups como array, filter/setFilter
-  const itemsArray = typeof s.getAllItems === 'function' ? s.getAllItems() : (Array.isArray(s.items) ? s.items : []);
+  const itemsArray = typeof s.getFilteredItems === 'function' ? s.getFilteredItems() : (typeof s.getAllItems === 'function' ? s.getAllItems() : (Array.isArray(s.items) ? s.items : []));
   const groupsArray = typeof s.getAllGroups === 'function' ? s.getAllGroups() : (Array.isArray(s.groups) ? s.groups : []);
 
   return {

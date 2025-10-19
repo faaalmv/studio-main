@@ -84,7 +84,7 @@ export const createSchedulerStore = (props: UseSchedulerProps) => {
       mealType: Meal,
       value: number
     ) => {
-      const { schedule, items, viewMode } = get();
+      const { schedule, items } = get();
       const item = items.byId[itemId];
 
       if (!item) {
@@ -92,30 +92,23 @@ export const createSchedulerStore = (props: UseSchedulerProps) => {
         return;
       }
 
-      // Calcular el nuevo total para el día incluyendo el cambio
       const currentDayData = schedule.byId[itemId]?.[day] || { desayuno: 0, almuerzo: 0, cena: 0 };
-      const newDayTotal = viewMode === 'detailed'
-        ? Object.entries(currentDayData)
-            .reduce((sum, [meal, qty]) => sum + (meal === mealType ? value : qty), 0)
-        : value;
+      const newDayData = { ...currentDayData, [mealType]: value };
 
+      // Verificar límite por día (suma de comidas)
+      const newDayTotal = Object.values(newDayData).reduce((sum, v) => sum + (Number(v) || 0), 0);
       if (newDayTotal > item.totalPossible) {
         console.warn(`Cannot set quantity above total possible (${item.totalPossible}) for item ${itemId}.`);
         return;
       }
 
-      // Actualizar el schedule de forma inmutable
       const newSchedule = {
         ...schedule,
         byId: {
           ...schedule.byId,
           [itemId]: {
-            ...(schedule.byId[itemId] || {
-              [day]: { desayuno: 0, almuerzo: 0, cena: 0 }
-            }),
-            [day]: viewMode === 'detailed'
-              ? { ...currentDayData, [mealType]: value }
-              : { desayuno: value, almuerzo: 0, cena: 0 },
+            ...(schedule.byId[itemId] || {}),
+            [day]: newDayData,
           },
         },
       };
