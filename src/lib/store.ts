@@ -20,6 +20,12 @@ import {
 export const createSchedulerStore = (props: UseSchedulerProps) => {
   const validatedProps = UseSchedulerPropsSchema.parse(props);
   const initialState = getInitialSchedulerState(validatedProps);
+  
+  // Función auxiliar memoizada para calcular el total diario
+  const getDailyTotal = (schedule: any, itemId: string, day: number): number => {
+    if (!schedule?.byId?.[itemId]?.[day]) return 0;
+    return Object.values(schedule.byId[itemId][day]).reduce((sum: number, current: number) => sum + current, 0);
+  };
 
   return create<SchedulerStore>()((set, get) => ({
     ...initialState,
