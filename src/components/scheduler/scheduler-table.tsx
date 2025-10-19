@@ -82,9 +82,11 @@ const MemoizedTableRow = memo(React.forwardRef<HTMLTableRowElement, MemoizedRowP
 
   return (
     <TableRow ref={ref} className={cn(rowClasses, className, "relative")} style={style} {...rest}>
-            <TableCell className="p-2 text-left align-middle">
-        <Badge variant="secondary" className="font-mono text-xs">{item.code}</Badge>
-      </TableCell>
+            {/* SOLUCIÓN: Primera columna como StickyTableCell nativa */}
+            <StickyTableCell isScrolled={isScrolled} position="left-0" width="w-32" className="p-2 text-left align-middle">
+              <Badge variant="secondary" className="font-mono text-xs">{item.code}</Badge>
+            </StickyTableCell>
+            {/* AJUSTE: desplazar las demás celdas fijas para acomodar la primera */}
             <StickyTableCell isScrolled={isScrolled} position="left-32" width="w-64" className="p-2 text-left align-middle">
                 <div className="font-bold text-sm">{item.description}</div>
             </StickyTableCell>
@@ -100,7 +102,7 @@ const MemoizedTableRow = memo(React.forwardRef<HTMLTableRowElement, MemoizedRowP
                     </div>
                 </div>
             </StickyTableCell>
-            {days.map(day => {
+            {days.map((day: number) => {
                 const dailyTotal = getDailyTotal(item.id, day);
                 const isHovered = hoveredColumn === day;
                 const isFocusContainerActive = hoveredColumn !== null;
@@ -163,15 +165,15 @@ export function SchedulerTable() {
         getFilteredItems,
     } = useScheduler();
 
-    const [isScrolled, setIsScrolled] = useState(false);
-    const [hoveredColumn, setHoveredColumn] = useState<number | null>(null);
-    const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [hoveredColumn, setHoveredColumn] = useState<number | null>(null);
+  const parentRef = useRef<HTMLDivElement>(null);
 
-    const handleScroll = useCallback(() => {
-        if (scrollContainerRef.current) {
-            setIsScrolled(scrollContainerRef.current.scrollLeft > 5);
-        }
-    }, []);
+  const handleScroll = useCallback(() => {
+    if (parentRef.current) {
+      setIsScrolled(parentRef.current.scrollLeft > 5);
+    }
+  }, []);
 
     const headerCellStyles = "p-2 align-middle text-sm font-semibold text-center bg-card shadow-inner-white";
     
@@ -194,21 +196,19 @@ export function SchedulerTable() {
       });
     }, [groups, filteredItems, collapsedGroups]);
     
-    const rowVirtualizer = useVirtualizer({
-        count: allItems.length,
-        getScrollElement: () => scrollContainerRef.current,
-        estimateSize: (index) => allItems[index].type === 'group' ? 48 : 56,
-        overscan: 5,
-        key: (index) => allItems[index].id,
-    });
+  const rowVirtualizer = useVirtualizer({
+    count: allItems.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: (index: number) => allItems[index].type === 'group' ? 48 : 56,
+    overscan: 10,
+  });
 
-    const headerTop = `top-0`;
-    const mealHeaderTop = `top-[2.5rem]`;
+  const mealHeaderTop = `top-[2.5rem]`;
     const groupHeaderTop = viewMode === 'detailed' ? 'top-[5rem]' : 'top-[2.5rem]';
 
     // Overlay sticky column
     return (
-      <div ref={scrollContainerRef} onScroll={handleScroll} className="h-full w-full overflow-auto relative">
+      <div ref={parentRef} onScroll={handleScroll} className="h-full w-full overflow-auto relative">
         <style>{`
           .row-transition {
             transition: background-color 0.2s ease-in-out;
@@ -221,49 +221,21 @@ export function SchedulerTable() {
             to { opacity: 1; transform: translateY(0); }
           }
         `}</style>
-        {/* Sticky column overlay */}
-        <div style={{ position: 'absolute', left: 0, top: 0, width: 130, zIndex: 20, pointerEvents: 'none', height: `${rowVirtualizer.getTotalSize()}px` }}>
-          {rowVirtualizer.getVirtualItems().map((virtualItem) => {
-            const row = allItems[virtualItem.index];
-            const style = {
-              position: 'absolute' as const,
-              top: 0 as const,
-              left: 0 as const,
-              width: '100%',
-              height: `${virtualItem.size}px`,
-              transform: `translateY(${virtualItem.start}px)`,
-              background: 'white',
-              borderBottom: '1px solid #eee',
-              display: 'flex',
-              alignItems: 'center',
-              paddingLeft: 8,
-            };
-            if (row.type === 'group') {
-              return (
-                <div key={virtualItem.key} style={style}>
-                  <span style={{ fontWeight: 'bold', fontSize: 13 }}>{row.group.name}</span>
-                </div>
-              );
-            }
-            const { item } = row;
-            return (
-              <div key={virtualItem.key} style={style}>
-                <span style={{ fontFamily: 'monospace', fontSize: 12 }}>{item.code}</span>
-              </div>
-            );
-          })}
-        </div>
+        {/* NOTE: Removed overlay sticky column. First column is now a native sticky cell inside each row. */}
         {/* Tabla virtualizada sin columna sticky */}
-        <Table style={{ height: `${rowVirtualizer.getTotalSize()}px`, marginLeft: 130 }} className="min-w-max border-separate border-spacing-0 relative">
+        <Table style={{ height: `${rowVirtualizer.getTotalSize()}px` }} className="min-w-max border-separate border-spacing-0 relative">
           <TableHeader className="sticky top-0 z-30 bg-card">
             <TableRow className="hover:bg-transparent">
-              {/* La columna sticky se omite aquí */}
+              {/* Primera columna sticky (Código) */}
+              <StickyTableCell isHeader isScrolled={isScrolled} position="left-0" width="w-32" className={cn(headerCellStyles, "z-40 border-b text-left", isScrolled && "shadow-lg")}>
+                Código
+              </StickyTableCell>
               <TableHead className={cn(headerCellStyles, "w-64 z-40 border-b text-left", isScrolled && "shadow-lg")}>Descripción</TableHead>
               <TableHead className={cn(headerCellStyles, "w-24 z-40 border-b text-center", isScrolled && "shadow-lg")}>Unidad</TableHead>
               <TableHead className={cn(headerCellStyles, "w-24 z-40 border-b", isScrolled && "shadow-lg")}>Total</TableHead>
               <TableHead className={cn(headerCellStyles, "w-24 z-40 border-b", isScrolled && "shadow-lg")}>Rest.</TableHead>
               <TableHead className={cn(headerCellStyles, "w-24 z-40 border-b", isScrolled && "shadow-lg")}>Estado</TableHead>
-              {days.map(day => (
+              {days.map((day: number) => (
                 <TableHead key={day} colSpan={viewMode === 'detailed' ? 3 : 1} className={cn(headerCellStyles, "w-24 border-b border-l transition-colors duration-200", hoveredColumn === day && "bg-primary/5")} onMouseEnter={() => handleColumnHover(day)} onMouseLeave={() => handleColumnHover(null)}>
                   {day}
                 </TableHead>
@@ -271,15 +243,15 @@ export function SchedulerTable() {
             </TableRow>
             {viewMode === 'detailed' && (
               <TableRow className="hover:bg-transparent">
-                {/* La columna sticky se omite aquí */}
+                {/* Sticky column header cell placeholder for meals row */}
+                <StickyTableCell isHeader isScrolled={isScrolled} position="left-0" width="w-32" className={cn(headerCellStyles, "z-40 border-b text-left", isScrolled && "shadow-lg")} style={{ top: mealHeaderTop }} />
                 <TableHead className={cn(headerCellStyles, "z-40 border-b", isScrolled && "shadow-lg")} style={{ top: mealHeaderTop }} />
                 <TableHead className={cn(headerCellStyles, "z-40 border-b", isScrolled && "shadow-lg")} style={{ top: mealHeaderTop }} />
                 <TableHead className={cn(headerCellStyles, "z-40 border-b", isScrolled && "shadow-lg")} style={{ top: mealHeaderTop }} />
                 <TableHead className={cn(headerCellStyles, "z-40 border-b", isScrolled && "shadow-lg")} style={{ top: mealHeaderTop }} />
                 <TableHead className={cn(headerCellStyles, "z-40 border-b", isScrolled && "shadow-lg")} style={{ top: mealHeaderTop }} />
-                <TableHead className={cn(headerCellStyles, "z-40 border-b", isScrolled && "shadow-lg")} style={{ top: mealHeaderTop }} />
-                {days.map(day => (
-                  <React.Fragment key={`meals-${day}`}> 
+                {days.map((day: number) => (
+                  <React.Fragment key={`meals-${day}`}>
                     {MEALS.map(meal => (
                       <TableHead key={meal} className={cn(headerCellStyles, "text-center text-xs font-medium text-muted-foreground w-12 border-b border-l transition-colors duration-200", hoveredColumn === day && "bg-primary/5")} style={{ top: mealHeaderTop }} onMouseEnter={() => handleColumnHover(day)} onMouseLeave={() => handleColumnHover(null)}>
                         {meal.charAt(0).toUpperCase()}
