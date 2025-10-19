@@ -23,6 +23,12 @@ interface GroupHeaderProps {
 
 export const SchedulerGroupHeader: React.FC<GroupHeaderProps> = ({ group, items, totals, isExpanded, onToggle, colSpan, stickyTopClass, style }) => {
   const { t } = useTranslation();
+
+  // Mover la verificación de group aquí para evitar problemas con hooks
+  if (!group) {
+    return null;
+  }
+
   /**
    * Calcula el resumen del grupo incluyendo el conteo de items y el porcentaje de disponibilidad.
    */
