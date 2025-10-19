@@ -1,5 +1,4 @@
 import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
 
 const resources = {
   es: {
@@ -29,16 +28,22 @@ export function initI18n() {
   if (globalThis.window === undefined) return;
 
   if (!i18n.isInitialized) {
-    i18n
-      .use(initReactI18next)
-      .init({
-        resources,
-        lng: 'es',
-        fallbackLng: 'es',
-        interpolation: {
-          escapeValue: false,
-        },
-      });
+    // Importar react-i18next dinámicamente solo en cliente para evitar errores en SSR
+    import('react-i18next').then(({ initReactI18next }) => {
+      i18n
+        .use(initReactI18next)
+        .init({
+          resources,
+          lng: 'es',
+          fallbackLng: 'es',
+          interpolation: {
+            escapeValue: false,
+          },
+        });
+    }).catch((err) => {
+      // eslint-disable-next-line no-console
+      console.error('Failed to load react-i18next for client-side i18n initialization', err);
+    });
   }
 }
 
