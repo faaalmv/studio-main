@@ -82,9 +82,9 @@ const MemoizedTableRow = memo(React.forwardRef<HTMLTableRowElement, MemoizedRowP
 
   return (
     <TableRow ref={ref} className={cn(rowClasses, className, "relative")} style={style} {...rest}>
-            <StickyTableCell isScrolled={isScrolled} position="left-0" width="w-32" className="p-2 text-left align-middle">
-                <Badge variant="secondary" className="font-mono text-xs">{item.code}</Badge>
-            </StickyTableCell>
+            <TableCell className="p-2 text-left align-middle">
+        <Badge variant="secondary" className="font-mono text-xs">{item.code}</Badge>
+      </TableCell>
             <StickyTableCell isScrolled={isScrolled} position="left-32" width="w-64" className="p-2 text-left align-middle">
                 <div className="font-bold text-sm">{item.description}</div>
             </StickyTableCell>
