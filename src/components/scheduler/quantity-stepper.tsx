@@ -27,6 +27,7 @@ interface QuantityStepperProps {
  * @param {QuantityStepperProps} props - The component props.
  * @returns {JSX.Element} The rendered quantity stepper.
  */
+export function QuantityStepper({ value, onValueChange, onCommit, max, 'aria-labelledby': ariaLabelledby }: Readonly<QuantityStepperProps>) {
   const inputId = useId();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -39,7 +40,7 @@ interface QuantityStepperProps {
     }
 
     // Eliminar caracteres no numéricos y parsear
-  const sanitized = valueStr.replaceAll(/[^0-9-]/g, '');
+    const sanitized = valueStr.replaceAll(/[^0-9-]/g, '');
     const numericValue = Number.parseInt(sanitized, 10);
 
     if (Number.isNaN(numericValue)) {
