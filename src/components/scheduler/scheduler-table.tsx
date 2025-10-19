@@ -96,7 +96,12 @@ const MemoizedTableRow = memo(React.forwardRef<HTMLTableRowElement, MemoizedRowP
       <StickyTableCell isScrolled={isScrolled} position="left-[42rem]" width="w-24" className={groupBorder}>
                 <div className="flex justify-center items-center">
           {(() => {
-            const badgeBg = totals[item.id].isOverLimit ? 'bg-rose-500/20' : (total > 0 ? 'bg-green-500/20' : 'bg-transparent');
+            let badgeBg = 'bg-transparent';
+            if (totals[item.id].isOverLimit) {
+              badgeBg = 'bg-rose-500/20';
+            } else if (total > 0) {
+              badgeBg = 'bg-green-500/20';
+            }
             return (
               <div className={cn('h-8 w-8 rounded-full flex items-center justify-center transition-all duration-300', badgeBg)}>
                 {totals[item.id].isOverLimit ? <AlertTriangle className="h-5 w-5 text-destructive" /> : (total > 0 && <CheckCircle className="h-5 w-5 text-green-500" />)}
