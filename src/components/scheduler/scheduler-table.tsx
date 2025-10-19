@@ -32,7 +32,7 @@ const StickyTableCell = React.forwardRef<HTMLTableCellElement, { isScrolled: boo
 ));
 StickyTableCell.displayName = 'StickyTableCell';
 
-const MemoizedTableRow = memo(React.forwardRef<HTMLTableRowElement, any>(function MemoizedTableRow({ item, style, className, isScrolled, hoveredColumn, ...rest }, ref) {
+const MemoizedTableRow = memo(React.forwardRef<HTMLTableRowElement, any>(function MemoizedTableRow({ item, style, className, isScrolled, hoveredColumn, makeOnDetailedValueChange, makeOnGeneralValueChange, getDailyTotal, ...rest }, ref) {
     const id = useId();
     const {
         schedule,
@@ -68,46 +68,42 @@ const MemoizedTableRow = memo(React.forwardRef<HTMLTableRowElement, any>(functio
     const total = totals[item.id].total;
     const rowClasses = "group row-transition animate-slide-down-fade-in hover:z-10";
 
+  // If factories are provided by parent, use them. Otherwise fall back to local implementations.
   const onDetailedValueChange = useCallback((day: number, meal: Meal) => (newValue: number) => {
-    updateQuantity(item.id, day, meal, newValue)
-  }, [item.id, updateQuantity]);
+    if (makeOnDetailedValueChange) return makeOnDetailedValueChange(item.id, day, meal)(newValue);
+    // fallback
+    updateQuantity(item.id, day, meal, newValue);
+  }, [item.id, makeOnDetailedValueChange, updateQuantity]);
 
   const onGeneralValueChange = useCallback((day: number, dailyTotal: number) => (newValue: number) => {
+    if (makeOnGeneralValueChange) return makeOnGeneralValueChange(item.id, day, dailyTotal)(newValue);
+    // fallback: same behavior as parent factory
     const diff = newValue - dailyTotal;
     if (diff === 0) return;
-
     const currentMeals = schedule[item.id]?.[day] || {};
-    // Aseguramos el mismo orden de comidas que se usa en el proyecto
-  const MEALS_ORDER: string[] = ['desayuno', 'comida', 'cena'];
-
-  const mealsWithValues = MEALS_ORDER.filter((meal) => (currentMeals[meal] ?? 0) > 0);
-
-    // Si la diferencia es positiva y ninguna comida tiene valor, añadir a la primera (ej. desayuno)
+    const MEALS_ORDER: string[] = ['desayuno', 'comida', 'cena'];
+    const mealsWithValues = MEALS_ORDER.filter((meal) => (currentMeals[meal] ?? 0) > 0);
     if (diff > 0 && mealsWithValues.length === 0) {
       const current = currentMeals['desayuno'] ?? 0;
       updateQuantity(item.id, day, 'desayuno', current + diff);
       return;
     }
-
-    // Si hay comidas con valor, actualizar la primera que se encuentre
     if (mealsWithValues.length > 0) {
-  const firstMealToUpdate = mealsWithValues[0];
-  const currentMealValue = currentMeals[firstMealToUpdate] ?? 0;
+      const firstMealToUpdate = mealsWithValues[0];
+      const currentMealValue = currentMeals[firstMealToUpdate] ?? 0;
       const newVal = Math.max(0, currentMealValue + diff);
-      updateQuantity(item.id, day, firstMealToUpdate, newVal);
+      updateQuantity(item.id, day, firstMealToUpdate as Meal, newVal);
       return;
     }
-
-    // Caso por defecto (diff negativo o no cubierto): si diff < 0, restar de la última comida con valor
     if (diff < 0) {
       const mealsNonZero = MEALS_ORDER.filter((meal) => (currentMeals[meal] ?? 0) > 0);
       if (mealsNonZero.length > 0) {
         const target = mealsNonZero.at(-1);
         const currentTargetVal = target ? (currentMeals[target] ?? 0) : 0;
-        if (target) updateQuantity(item.id, day, target, Math.max(0, currentTargetVal + diff));
+        if (target) updateQuantity(item.id, day, target as Meal, Math.max(0, currentTargetVal + diff));
       }
     }
-  }, [item.id, schedule, updateQuantity]);
+  }, [item.id, makeOnGeneralValueChange, schedule, updateQuantity]);
 
   return (
     <TableRow ref={ref} className={cn(rowClasses, className, "relative")} style={style} {...rest}>
@@ -199,6 +195,9 @@ export function SchedulerTable() {
     toggleGroupCollapsed,
     collapsedGroups,
     getFilteredItems,
+    updateQuantity,
+    getDailyTotal,
+    schedule,
   } = useScheduler();
 
   const [isScrolled, setIsScrolled] = useState(false);
@@ -238,6 +237,43 @@ export function SchedulerTable() {
     estimateSize: (index: number) => allItems[index].type === 'group' ? 48 : 56,
     overscan: 10,
   });
+
+  // Callback factories: creadas en el padre para evitar crear lógica en cada fila.
+  const makeOnDetailedValueChange = useCallback((itemId: string, day: number, meal: Meal) => (newValue: number) => {
+    updateQuantity(itemId, day, meal, newValue);
+  }, [updateQuantity]);
+
+  const makeOnGeneralValueChange = useCallback((itemId: string, day: number, dailyTotal: number) => (newValue: number) => {
+    const diff = newValue - dailyTotal;
+    if (diff === 0) return;
+
+    const currentMeals = schedule[itemId]?.[day] || {};
+    const MEALS_ORDER: string[] = ['desayuno', 'comida', 'cena'];
+    const mealsWithValues = MEALS_ORDER.filter((meal) => (currentMeals[meal] ?? 0) > 0);
+
+    if (diff > 0 && mealsWithValues.length === 0) {
+      const current = currentMeals['desayuno'] ?? 0;
+      updateQuantity(itemId, day, 'desayuno', current + diff);
+      return;
+    }
+
+    if (mealsWithValues.length > 0) {
+      const firstMealToUpdate = mealsWithValues[0];
+      const currentMealValue = currentMeals[firstMealToUpdate] ?? 0;
+      const newVal = Math.max(0, currentMealValue + diff);
+      updateQuantity(itemId, day, firstMealToUpdate as Meal, newVal);
+      return;
+    }
+
+    if (diff < 0) {
+      const mealsNonZero = MEALS_ORDER.filter((meal) => (currentMeals[meal] ?? 0) > 0);
+      if (mealsNonZero.length > 0) {
+        const target = mealsNonZero.at(-1);
+        const currentTargetVal = target ? (currentMeals[target] ?? 0) : 0;
+        if (target) updateQuantity(itemId, day, target as Meal, Math.max(0, currentTargetVal + diff));
+      }
+    }
+  }, [schedule, updateQuantity]);
 
   const mealHeaderTop = `top-[2.5rem]`;
     const groupHeaderTop = viewMode === 'detailed' ? 'top-[5rem]' : 'top-[2.5rem]';
@@ -319,7 +355,7 @@ export function SchedulerTable() {
                     items={groupItems}
                     totals={totals}
                     isExpanded={isExpanded}
-                    onToggle={() => toggleGroupCollapsed(group.name)}
+                      onToggle={() => toggleGroupCollapsed(group.name)}
                     colSpan={colSpan}
                     stickyTopClass={groupHeaderTop}
                     style={commonStyle}
@@ -336,6 +372,9 @@ export function SchedulerTable() {
           item={item}
           style={{...commonStyle, animationDelay: `${virtualItem.index * 30}ms` }}
           {...{ className: 'flex', isScrolled, hoveredColumn }}
+          makeOnDetailedValueChange={makeOnDetailedValueChange}
+          makeOnGeneralValueChange={makeOnGeneralValueChange}
+          getDailyTotal={getDailyTotal}
         />
               )
             })}
