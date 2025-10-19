@@ -1,6 +1,7 @@
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
+import '../i18n';
 import { Inter as FontSans } from "next/font/google"
 import { cn } from '@/lib/utils';
 
