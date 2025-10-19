@@ -167,5 +167,3 @@ export function exportToCsv(
   link.click();
   link.remove();
 }
-}
-}
