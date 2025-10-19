@@ -24,15 +24,22 @@ const resources = {
   }
 };
 
-i18n
-  .use(initReactI18next)
-  .init({
-    resources,
-    lng: 'es',
-    fallbackLng: 'es',
-    interpolation: {
-      escapeValue: false,
-    },
-  });
+export function initI18n() {
+  // Solo inicializar en cliente
+  if (globalThis.window === undefined) return;
+
+  if (!i18n.isInitialized) {
+    i18n
+      .use(initReactI18next)
+      .init({
+        resources,
+        lng: 'es',
+        fallbackLng: 'es',
+        interpolation: {
+          escapeValue: false,
+        },
+      });
+  }
+}
 
 export default i18n;
