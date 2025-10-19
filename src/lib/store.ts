@@ -103,20 +103,16 @@ export const createSchedulerStore = (props: UseSchedulerProps) => {
       });
     },
 
-    // Selectors
+    // Selectors memoizados
     getItemById: (id: string) => get().items.byId[id],
     
-    getGroupById: (name: string) => 
-      get().groups.byId[name],
+    getGroupById: (name: string) => get().groups.byId[name],
     
-    getAllItems: () => 
-      get().items.allIds.map(id => get().items.byId[id]),
+    getAllItems: () => get().items.allIds.map(id => get().items.byId[id]),
     
-    getAllGroups: () => 
-      get().groups.allIds.map(id => get().groups.byId[id]),
+    getAllGroups: () => get().groups.allIds.map(id => get().groups.byId[id]),
     
-    getItemsByGroup: (groupName: string) => 
-      get().getAllItems().filter(item => item.group === groupName),
+    getItemsByGroup: (groupName: string) => get().getAllItems().filter(item => item.group === groupName),
 
     getFilteredItems: () => {
       const { filters } = get();
@@ -124,6 +120,13 @@ export const createSchedulerStore = (props: UseSchedulerProps) => {
         search: filters.search,
         group: filters.group
       });
+    },
+
+    getDailyTotal: (itemId: string, day: number) => {
+      const { schedule } = get();
+      const dayData = schedule.byId[itemId]?.[day];
+      if (!dayData) return 0;
+      return (Object.values(dayData) as number[]).reduce((sum, current) => sum + (current || 0), 0);
     },
   }));
 };
