@@ -23,15 +23,20 @@ interface QuantityStepperProps {
 }
 
 /**
- * A customizable quantity stepper component.
+ * A customizable quantity stepper component that is fully controlled by its props.
  * @param {QuantityStepperProps} props - The component props.
  * @returns {JSX.Element} The rendered quantity stepper.
  */
 export function QuantityStepper({ value, onValueChange, onCommit, max, 'aria-labelledby': ariaLabelledby }: QuantityStepperProps) {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const sanitizedValue = e.target.value.replace(/[^0-9]/g, '');
-    const numericValue = sanitizedValue === '' ? 0 : parseInt(sanitizedValue, 10);
-    onValueChange(numericValue);
+    const sanitizedValue = e.target.value.replaceAll(/\D/g, '');
+    const numericValue = sanitizedValue === '' ? 0 : Number.parseInt(sanitizedValue, 10);
+    
+    if (numericValue <= max) {
+      onValueChange(numericValue);
+    } else {
+      onValueChange(max);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -40,18 +45,21 @@ export function QuantityStepper({ value, onValueChange, onCommit, max, 'aria-lab
       onCommit?.();
       e.currentTarget.blur();
     } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        handleStep(1);
+      e.preventDefault();
+      handleStep(1);
     } else if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        handleStep(-1);
+      e.preventDefault();
+      handleStep(-1);
     }
   };
 
   const handleStep = useCallback((amount: number) => {
-    const newValue = Math.max(0, (value || 0) + amount);
-    onValueChange(newValue);
-  }, [value, onValueChange]);
+    const currentValue = value || 0;
+    const newValue = Math.min(Math.max(0, currentValue + amount), max);
+    if (newValue !== value) {
+      onValueChange(newValue);
+    }
+  }, [value, onValueChange, max]);
 
   return (
     <div className="group relative flex items-center justify-center w-full h-full transition-transform duration-150 ease-in-out focus-within:z-10 focus-within:scale-110">
