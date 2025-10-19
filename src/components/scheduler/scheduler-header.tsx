@@ -59,11 +59,11 @@ export function SchedulerHeader() {
                         <SelectValue placeholder="Seleccionar Mes" />
                     </SelectTrigger>
                     <SelectContent className="glass-select-menu">
-                        {monthOptions.map(option => (
-                            <SelectItem key={option.value} value={option.value}>
-                                {option.label}
-                            </SelectItem>
-                        ))}
+            {monthOptions.map((option: { value: string; label: string }) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
                     </SelectContent>
                 </Select>
               </div>
@@ -74,11 +74,11 @@ export function SchedulerHeader() {
                         <SelectValue placeholder="Seleccionar Servicio" />
                     </SelectTrigger>
                     <SelectContent className="glass-select-menu">
-                        {serviceOptions.map(option => (
-                            <SelectItem key={option.value} value={option.value}>
-                                {option.label}
-                            </SelectItem>
-                        ))}
+            {serviceOptions.map((option: { value: string; label: string }) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
                     </SelectContent>
                 </Select>
               </div>

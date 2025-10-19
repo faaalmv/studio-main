@@ -38,9 +38,8 @@ const MemoizedTableRow = memo(React.forwardRef<HTMLTableRowElement, any>(functio
         schedule,
         totals,
         viewMode,
-        days,
+    days,
         updateQuantity,
-        getDailyTotal,
     } = useScheduler();
     
     const cellStyles = "p-0 h-14 transition-colors duration-200";
